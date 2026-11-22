@@ -174,6 +174,7 @@ function tarjeta(o){
   if(tel && o.estado==="encontrado"){ const msg = `Hola${o.contacto_nombre?" "+o.contacto_nombre:""}, te escribimos de Radio Taxi 380mil: ¡apareció tu ${o.objeto.toLowerCase()}! (reclamo #${o.nro}). Podés retirarlo en Pueyrredón 382, Rosario, las 24 horas. Traé tu documento. ¡Saludos!`;
     h += `<a class="b wa" target="_blank" rel="noopener" href="https://wa.me/${waNum(tel)}?text=${encodeURIComponent(msg)}">Avisar por WhatsApp</a>`; }
   else if(tel && !fin) h += `<a class="b" target="_blank" rel="noopener" href="https://wa.me/${waNum(tel)}">WhatsApp</a>`;
+  if(o.tipo==="perdido" && o.movil && o.estado==="abierto") h += `<button class="b wa" data-tit="${o.id}">📲 Avisar al titular del móvil ${esc(o.movil)}</button>`;
   if(o.estado==="abierto" && o.tipo==="perdido") h += `<button class="b pri" data-est="${o.id}|encontrado">Apareció</button>`;
   if(!fin) h += `<button class="b" data-ent="${o.id}">Entregado</button><button class="b" data-est="${o.id}|cerrado">Cerrar</button>`;
   if(fin) h += `<button class="b" data-est="${o.id}|abierto">Reabrir</button>`;
@@ -230,6 +231,31 @@ document.addEventListener("click", e => {
   if(t.dataset.ok){ const box = $("in-"+t.dataset.ok), v = box.querySelector("input").value.trim(); if(!v) return; const p = pendiente&&pendiente.id===t.dataset.ok?pendiente:{ent:false};
     accion(t.dataset.ok, p.ent?"entregado":null, null, p.ent?"Entregado a: "+v:v); }
 });
+/* ---------- Aviso al titular del móvil (con lo del portal) ---------- */
+function msgTitular(o, nombre){
+  const n = String(nombre||"").includes(",") ? String(nombre).split(",")[1].trim().split(" ")[0] : String(nombre||"").split(" ")[0];
+  const nom = n ? n.charAt(0).toUpperCase()+n.slice(1).toLowerCase() : "";
+  return `Hola${nom?" "+nom:""}, te escribimos de Radio Taxi 380mil 🚕\n\n`+
+    `Un pasajero reclama que se olvidó *${o.objeto.toLowerCase()}* en el móvil ${o.movil}`+(o.cuando?` (${o.cuando})`:"")+(o.recorrido?`, ${o.recorrido}`:"")+`. Reclamo N° ${o.nro}.\n`+
+    `¿Podés fijarte en el auto o preguntarle al chofer? Si lo encuentran, déjenlo en *Pueyrredón 382* (abierto las 24 hs) o avisanos por acá.\n\n`+
+    `📲 Además te contamos que ya tenés el *Portal del Titular*: tu saldo, tus pagos, las novedades de la empresa y desde ahí también podés avisarnos si encontrás algo en el auto.\n`+
+    `Entrá en https://titular.radiotaxi380mil.com con tu número de móvil y tu DNI.\n\nGracias!`;
+}
+document.addEventListener("click", async e => { const b = e.target.closest("[data-tit]"); if(!b) return;
+  const o = items.find(x => x.id===b.dataset.tit); if(!o) return;
+  b.disabled = true; const txt0 = b.textContent; b.textContent = "Buscando teléfono…";
+  try{
+    const d = await rpc("objetos_titular",{p_clave:clave,p_movil:o.movil});
+    const msg = msgTitular(o, d && d.titular);
+    const tel = d && d.tel ? waNum(d.tel) : "";
+    if(tel.length >= 12){ window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`,"_blank","noopener"); b.textContent = "✓ WhatsApp abierto";
+      rpc("objetos_accion",{p_clave:clave,p_id:o.id,p_estado:null,p_vinculo:null,p_nota:"Se avisó al titular del móvil "+o.movil+" por WhatsApp",p_quien:yo}).then(cargar).catch(()=>{}); }
+    else { try{ await navigator.clipboard.writeText(msg); }catch(err){}
+      b.textContent = "Sin teléfono en la ficha: mensaje copiado"; }
+  }catch(err){ b.textContent = "No se pudo. Probá de nuevo."; }
+  setTimeout(() => { b.disabled = false; b.textContent = txt0; }, 5000);
+});
+
 /* ---------- CIOR 147 ---------- */
 const CIOR = [{n:"+54 9 341 395-6761", w:"5493413956761"}, {n:"+54 9 341 636-2475", w:"5493416362475"}];
 const esCior = o => /^CIOR/i.test(o.contacto_nombre||"");
@@ -262,7 +288,7 @@ $("ciBtn").addEventListener("click", async () => {
       p_recorrido:[ci.origen&&"Desde "+ci.origen, ci.destino&&"hasta "+ci.destino].filter(Boolean).join(" "),p_movil:ci.movil,p_nombre:"CIOR 147",p_tel:CIOR[0].n,p_quien:yo});
     if(d.ok){ const resp = ciMsg({descripcion:"R.A. "+ci.ra, cuando:[ci.dia,ci.hora].filter(Boolean).join(" "), objeto:ci.objeto, nro:d.nro}, false);
       let copiado = false; try{ await navigator.clipboard.writeText(resp); copiado = true; }catch(e){}
-      $("ciMsg").innerHTML = "Guardado con el número <b>#"+d.nro+"</b>. " + (copiado ? "<b>La confirmación ya está copiada: pegala ahora en el grupo del 147.</b>" : "Tocá «Copiar respuesta para el grupo» en el reclamo.");
+      $("ciMsg").innerHTML = "Guardado con el número <b>#"+d.nro+"</b>. " + (copiado ? "<b>La confirmación ya está copiada: pegala ahora en el grupo del 147.</b>" : "Tocá «Copiar respuesta para el grupo» en el reclamo.") + (ci.movil ? "<br>Después tocá <b>📲 Avisar al titular del móvil "+esc(ci.movil)+"</b> en el reclamo." : "");
       $("ciTxt").value=""; $("ciPrev").innerHTML=""; $("ciBtn").classList.add("hidden"); ci=null; cargar(); }
     else $("ciMsg").textContent = "No se pudo guardar."; }
   catch(e){ $("ciMsg").textContent = "Sin conexión."; }
