@@ -71,10 +71,20 @@
       <button data-f="buscando" class="on">Pasajeros buscando<span class="n" id="n1"></span></button>
       <button data-f="guardados">Objetos guardados<span class="n" id="n2"></span></button>
       <button data-f="resueltos">Resueltos<span class="n" id="n3"></span></button>
+      <button data-f="cior">📋 Pegar reclamo del 147</button>
       <button data-f="cargar">+ Cargar a mano</button>
       <button data-f="ayuda">Links</button>
     </div>
     <div class="grid" id="lista"></div>
+
+    <div class="card hidden" id="vCior">
+      <h2 style="font-size:17px">Reclamo del CIOR 147</h2>
+      <p class="m">En el grupo de WhatsApp, mantené apretado el mensaje → <b>Copiar</b>, y pegalo acá abajo. Se completa solo.</p>
+      <textarea id="ciTxt" rows="8" placeholder="RA: 3568 - 380 mil&#10;DIA: 20/11/2026.&#10;HORA: 04:00 05:00 am&#10;ORIGEN: …&#10;DESTINO: …&#10;OBJETO EXTRAVIADO: …"></textarea>
+      <div id="ciPrev" style="margin-top:10px"></div>
+      <button class="b pri hidden" style="margin-top:12px;padding:12px 18px" id="ciBtn">Guardar reclamo</button>
+      <p class="m" id="ciMsg" style="margin-top:8px"></p>
+    </div>
 
     <div class="card hidden" id="vCargar">
       <h2 style="font-size:17px">Cargar a mano</h2>
@@ -150,7 +160,14 @@ function tarjeta(o){
   }
   const notas = o.notas||[]; if(notas.length) h += `<div class="notas">${notas.map(n=>`💬 ${esc(n.t)} <span class="m">— ${esc(n.quien)}, ${fecha(n.at)}</span>`).join("<br>")}</div>`;
   h += `<div class="acc">`;
-  const tel = o.tipo==="perdido" ? o.contacto_tel : "";
+  if(o.tipo==="perdido" && esCior(o) && o.estado!=="cerrado"){
+    const ra = (String(o.descripcion||"").match(/R\.A\. (\d+)/)||[,""])[1];
+    const ok = o.estado==="encontrado"||o.estado==="entregado";
+    const msg = ok ? `Hola, les escribimos de Radio Taxi 380mil por el reclamo${ra?" del R.A. "+ra:""}${o.cuando?" ("+o.cuando+")":""}: apareció el objeto (${o.objeto}). El pasajero puede retirarlo en Pueyrredón 382, Rosario, las 24 horas, con su documento. Gracias.`
+                   : `Hola, les escribimos de Radio Taxi 380mil por el reclamo${ra?" del R.A. "+ra:""}${o.cuando?" ("+o.cuando+")":""} (${o.objeto}): lo recibimos y ya lo estamos buscando con el chofer. Les avisamos cualquier novedad.`;
+    h += `<div class="acc">${CIOR.map(c=>`<a class="b wa" target="_blank" rel="noopener" href="https://wa.me/${c.w}?text=${encodeURIComponent(msg)}">${ok?"Avisar al 147":"Confirmar al 147"} (${c.n.slice(-9)})</a>`).join("")}</div>`;
+  }
+  const tel = o.tipo==="perdido" && !esCior(o) ? o.contacto_tel : "";
   if(tel && o.estado==="encontrado"){ const msg = `Hola${o.contacto_nombre?" "+o.contacto_nombre:""}, te escribimos de Radio Taxi 380mil: ¡apareció tu ${o.objeto.toLowerCase()}! (reclamo #${o.nro}). Podés retirarlo en Pueyrredón 382, Rosario, las 24 horas. Traé tu documento. ¡Saludos!`;
     h += `<a class="b wa" target="_blank" rel="noopener" href="https://wa.me/${waNum(tel)}?text=${encodeURIComponent(msg)}">Avisar por WhatsApp</a>`; }
   else if(tel && !fin) h += `<a class="b" target="_blank" rel="noopener" href="https://wa.me/${waNum(tel)}">WhatsApp</a>`;
@@ -167,7 +184,7 @@ function pintar(){
   $("n1").textContent = busc.length; $("n2").textContent = guard.length; $("n3").textContent = res.length;
   const abiertos = busc.filter(o=>o.estado==="abierto").length + guard.filter(o=>o.estado==="abierto").length;
   document.title = (abiertos?"("+abiertos+") ":"") + "Objetos perdidos · 380mil";
-  $("vCargar").classList.toggle("hidden", filtro!=="cargar"); $("vAyuda").classList.toggle("hidden", filtro!=="ayuda");
+  $("vCargar").classList.toggle("hidden", filtro!=="cargar"); $("vCior").classList.toggle("hidden", filtro!=="cior"); $("vAyuda").classList.toggle("hidden", filtro!=="ayuda");
   const L = filtro==="buscando"?busc:filtro==="guardados"?guard:filtro==="resueltos"?res:null;
   $("lista").classList.toggle("hidden", !L);
   if(L) $("lista").innerHTML = L.length ? L.map(tarjeta).join("") : '<div class="vacio">No hay nada acá por ahora.</div>';
@@ -184,6 +201,34 @@ document.addEventListener("click", e => {
   if(t.dataset.ok){ const box = $("in-"+t.dataset.ok), v = box.querySelector("input").value.trim(); if(!v) return; const p = pendiente&&pendiente.id===t.dataset.ok?pendiente:{ent:false};
     accion(t.dataset.ok, p.ent?"entregado":null, null, p.ent?"Entregado a: "+v:v); }
 });
+/* ---------- CIOR 147 ---------- */
+const CIOR = [{n:"+54 9 341 395-6761", w:"5493413956761"}, {n:"+54 9 341 636-2475", w:"5493416362475"}];
+const esCior = o => /^CIOR/i.test(o.contacto_nombre||"");
+let ci = null;
+function ciLeer(t){
+  const get = k => { const m = t.match(new RegExp("^\\s*"+k+"\\s*:\\s*(.+)$","im")); return m ? m[1].trim().replace(/\.$/,"") : ""; };
+  const ra = (get("RA").match(/\d+/)||[""])[0];
+  return { ra, dia: get("D[IÍ]A"), hora: get("HORA"), origen: get("ORIGEN"), destino: get("DESTINO"), objeto: get("OBJETO(?: EXTRAVIADO)?") || get("OBJETO PERDIDO") };
+}
+$("ciTxt").addEventListener("input", async () => {
+  const t = $("ciTxt").value; ci = ciLeer(t);
+  if(!ci.objeto){ $("ciPrev").innerHTML = t.trim() ? '<p class="err">No encuentro "OBJETO EXTRAVIADO:" en el mensaje. Revisá que esté completo.</p>' : ""; $("ciBtn").classList.add("hidden"); return; }
+  ci.movil = "";
+  if(ci.ra){ try{ const d = await rpc("objetos_movil_por_ra",{p_clave:clave,p_ra:ci.ra}); ci.movil = (d && d.movil) || ""; }catch(e){} }
+  $("ciPrev").innerHTML = `<div class="sug" style="background:var(--cel);border-color:var(--borde)"><b style="color:var(--azul)">${esc(ci.objeto)}</b><br>
+    🕘 ${esc([ci.dia,ci.hora].filter(Boolean).join(" "))}<br>📍 ${esc([ci.origen&&"Desde "+ci.origen, ci.destino&&"hasta "+ci.destino].filter(Boolean).join(" "))}<br>
+    🚕 R.A. ${esc(ci.ra||"—")} ${ci.movil?"→ <b>Móvil "+esc(ci.movil)+"</b>":ci.ra?"(no encontré el móvil de ese R.A.)":""}</div>`;
+  $("ciBtn").classList.remove("hidden");
+});
+$("ciBtn").addEventListener("click", async () => {
+  if(!ci || !ci.objeto) return;
+  try{ const d = await rpc("objetos_cargar",{p_clave:clave,p_tipo:"perdido",p_objeto:ci.objeto,p_desc:"Reclamo del CIOR 147"+(ci.ra?" · R.A. "+ci.ra:""),p_cuando:[ci.dia,ci.hora].filter(Boolean).join(" "),
+      p_recorrido:[ci.origen&&"Desde "+ci.origen, ci.destino&&"hasta "+ci.destino].filter(Boolean).join(" "),p_movil:ci.movil,p_nombre:"CIOR 147",p_tel:CIOR[0].n,p_quien:yo});
+    if(d.ok){ $("ciMsg").textContent = "Guardado con el número #"+d.nro+". Ya lo ven todos en \"Pasajeros buscando\"."; $("ciTxt").value=""; $("ciPrev").innerHTML=""; $("ciBtn").classList.add("hidden"); ci=null; cargar(); }
+    else $("ciMsg").textContent = "No se pudo guardar."; }
+  catch(e){ $("ciMsg").textContent = "Sin conexión."; }
+});
+
 $("cBtn").addEventListener("click", async () => {
   if(!$("cObj").value.trim()){ $("cMsg").textContent = "Poné qué es."; return; }
   try{ const d = await rpc("objetos_cargar",{p_clave:clave,p_tipo:$("cTipo").value,p_objeto:$("cObj").value.trim(),p_desc:$("cDesc").value.trim(),p_cuando:$("cCuando").value.trim(),p_recorrido:$("cRec").value.trim(),p_movil:$("cMov").value,p_nombre:$("cNom").value.trim(),p_tel:$("cTel").value.trim(),p_quien:yo});
