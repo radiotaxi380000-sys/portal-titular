@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Perdí algo en un taxi · Radio Taxi 380mil</title>
+<meta name="theme-color" content="#0b3d91">
+<link rel="icon" href="../icono-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{--azul:#0b3d91;--azul2:#1256c4;--celeste-claro:#e8f4ff;--gris:#5b6b82;--borde:#dbe6f5;--fondo:#f3f7fc;--ok:#1a8f5a;--ok-bg:#e6f6ee;--rojo:#c0392b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Inter,system-ui,sans-serif;background:var(--fondo);color:#13233d;min-height:100vh}
+  .wrap{max-width:560px;margin:0 auto;padding:0 16px 48px}
+  .hero{margin:0 -16px;padding:26px 24px 84px;color:#fff;text-align:center;position:relative;overflow:hidden;
+    background:radial-gradient(120% 80% at 50% 0%,#2f7de0 0%,#1256c4 35%,#0b3d91 75%,#082c6b 100%);border-radius:0 0 34px 34px}
+  .damero{position:absolute;left:0;right:0;top:0;height:14px;opacity:.9;background:repeating-conic-gradient(#fff 0 25%,transparent 0 50%) 0 0/14px 14px}
+  .hero img{width:80px;height:80px;border-radius:50%;background:#fff;margin-top:14px;box-shadow:0 0 0 6px rgba(255,255,255,.18),0 10px 26px rgba(0,0,0,.25)}
+  .marca{margin-top:12px;font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
+  .hero h1{margin-top:4px;font-size:28px;font-weight:900;letter-spacing:-.02em;line-height:1.1}
+  .hero p{margin-top:8px;font-size:15px;opacity:.92;line-height:1.45}
+  .card{background:#fff;border:1px solid var(--borde);border-radius:18px;padding:22px 20px;margin-top:14px;box-shadow:0 2px 10px rgba(11,61,145,.05)}
+  .card.first{margin-top:-60px;position:relative;z-index:2;box-shadow:0 18px 40px rgba(11,61,145,.14)}
+  .q{padding:18px 0;border-bottom:1px solid var(--borde)}
+  .q:first-child{padding-top:0}
+  .q:last-of-type{border-bottom:none}
+  .q h2{font-size:16px;font-weight:700;line-height:1.35}
+  .q .op{font-weight:500;color:var(--gris);font-size:13px}
+  .estrellas{display:flex;gap:6px;margin-top:12px}
+  .estrellas button{flex:1;height:52px;border-radius:12px;border:1.5px solid var(--borde);background:#fbfdff;font-size:26px;cursor:pointer;color:#c7d2e3;transition:transform .1s}
+  .estrellas button.on{color:#f5b301;border-color:#f5c94d;background:#fff8e1}
+  .estrellas button:active{transform:scale(.94)}
+  .nota{font-size:13px;color:var(--gris);margin-top:6px;min-height:18px}
+  .opciones{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .opciones label{display:flex;align-items:center;gap:10px;padding:13px 14px;border:1.5px solid var(--borde);border-radius:12px;cursor:pointer;font-weight:500;background:#fbfdff}
+  .opciones input{width:20px;height:20px;accent-color:var(--azul)}
+  .opciones label:has(input:checked){border-color:var(--azul2);background:var(--celeste-claro)}
+  textarea,input[type=text],input[type=tel]{width:100%;margin-top:10px;padding:13px;border:1.5px solid var(--borde);border-radius:12px;font:inherit;font-size:16px;background:#fbfdff;outline:none}
+  textarea{min-height:90px;resize:vertical}
+  textarea:focus,input:focus{border-color:var(--azul2);background:#fff}
+  .app{margin-top:10px;padding:12px 14px;border-radius:12px;background:var(--celeste-claro);font-size:14px;line-height:1.45;color:#24385a}
+  .btn{display:block;width:100%;padding:16px;border:none;border-radius:12px;font:inherit;font-weight:800;font-size:17px;cursor:pointer;margin-top:18px;color:#fff;background:linear-gradient(135deg,#0b3d91,#1f6fe0);box-shadow:0 8px 20px rgba(18,86,196,.3)}
+  .btn:disabled{opacity:.6}
+  .error{color:var(--rojo);font-size:14px;margin-top:10px;display:none}
+  .gracias{text-align:center;padding:10px 0}
+  .gracias .ic{width:72px;height:72px;border-radius:50%;background:var(--ok-bg);color:var(--ok);display:grid;place-items:center;font-size:36px;margin:0 auto 14px}
+  .gracias h2{font-size:22px}
+  .gracias p{color:var(--gris);margin-top:8px;line-height:1.5}
+  .contacto{margin-top:16px;font-size:14px;color:var(--gris);text-align:center;line-height:1.6}
+  .contacto a{color:var(--azul);font-weight:700;text-decoration:none}
+  .hidden{display:none!important}
+  footer{text-align:center;color:var(--gris);font-size:12px;margin-top:22px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chips button{border:1.5px solid var(--borde);background:#fbfdff;border-radius:999px;padding:8px 14px;font:inherit;font-weight:600;font-size:14px;cursor:pointer;color:#24385a}
+  .chips button.on{border-color:var(--azul2);background:var(--celeste-claro);color:var(--azul)}
+  .fila{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  label.l{display:block;font-size:13px;font-weight:600;color:#24385a;margin-top:12px}
+  label.l input{margin-top:6px}
+  input[type=date],input[type=time],input[inputmode=numeric]{width:100%;margin-top:6px;padding:13px;border:1.5px solid var(--borde);border-radius:12px;font:inherit;font-size:16px;background:#fbfdff;outline:none}
+  .retiro{margin-top:14px;padding:14px;border-radius:12px;background:var(--celeste-claro);text-align:left;line-height:1.5;color:#24385a}
+  .nro{font-size:34px;font-weight:900;color:var(--azul);margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="damero" aria-hidden="true"></div>
+    <img src="../icono-192.png" alt="Radio Taxi 380mil">
+    <div class="marca">Radio Taxi 380mil</div>
+    <h1>¿Te olvidaste algo en un taxi?</h1>
+    <p>Contanos qué perdiste. Avisamos a los choferes y te escribimos por WhatsApp si aparece.</p>
+  </div>
+
+  <div class="card first" id="cForm">
+    <form id="f" novalidate>
+      <div class="q">
+        <h2>¿Qué perdiste?</h2>
+        <div class="chips" id="chips">
+          <button type="button">Celular</button><button type="button">Billetera</button><button type="button">Llaves</button>
+          <button type="button">Documentos</button><button type="button">Mochila / bolso</button><button type="button">Paraguas</button>
+          <button type="button">Anteojos</button><button type="button">Otro</button>
+        </div>
+        <textarea id="desc" maxlength="800" placeholder="Describilo: color, marca, qué tenía adentro…" style="min-height:80px"></textarea>
+      </div>
+      <div class="q">
+        <h2>¿Cuándo y dónde viajaste?</h2>
+        <div class="fila">
+          <label class="l">Día<input type="date" id="dia"></label>
+          <label class="l">Hora aprox.<input type="time" id="hora"></label>
+        </div>
+        <label class="l">Desde<input type="text" id="desde" maxlength="140" placeholder="Ej.: Córdoba y Paraguay"></label>
+        <label class="l">Hasta<input type="text" id="hasta" maxlength="140" placeholder="Ej.: Terminal de ómnibus"></label>
+        <label class="l">Número de móvil, si lo sabés <span class="op">(opcional)</span><input type="text" inputmode="numeric" id="movil" maxlength="6" placeholder="Ej.: 245"></label>
+      </div>
+      <div class="q">
+        <h2>¿Cómo te avisamos?</h2>
+        <input type="text" id="nom" maxlength="120" placeholder="Tu nombre" autocomplete="name">
+        <input type="tel" id="tel" maxlength="40" placeholder="Tu WhatsApp (ej.: 341 555-1234)" autocomplete="tel">
+      </div>
+      <button class="btn" type="submit" id="btn">Enviar aviso</button>
+      <p class="error" id="err"></p>
+    </form>
+  </div>
+
+  <div class="card first hidden" id="cOk">
+    <div class="gracias">
+      <div class="ic">✓</div>
+      <h2>¡Recibimos tu aviso!</h2>
+      <p>Tu número de reclamo es</p>
+      <div class="nro" id="nro"></div>
+      <p>Ya lo ven los choferes y la central. Si aparece, te escribimos por WhatsApp.</p>
+      <div class="retiro"><b>📍 Dónde se retira:</b> Pueyrredón 382, Rosario.<br><b>🕘 Horario:</b> las 24 horas, todos los días.<br>Llevá tu documento y el número de reclamo.</div>
+    </div>
+  </div>
+
+  <div class="contacto">¿Es urgente? Llamá a la central: <a href="tel:+543414380000">341 4-380.000</a></div>
+  <footer>Radio Taxi 380mil · Rosario · Desde 1980</footer>
+</div>
+<script>
+const SB_URL = "https://muemdhlrsjlmxvfraljp.supabase.co";
+const SB_KEY = "sb_publishable_WMpo3vPv2NDR5Ms_QEDHyQ_ATzkn46l";
+const $ = id => document.getElementById(id);
+let objeto = "";
+document.querySelectorAll("#chips button").forEach(b => b.addEventListener("click", () => {
+  objeto = b.textContent; document.querySelectorAll("#chips button").forEach(x => x.classList.toggle("on", x === b));
+}));
+(function(){ const d = new Date(); $("dia").value = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); })();
+$("f").addEventListener("submit", async e => {
+  e.preventDefault();
+  const tel = $("tel").value.trim(), desc = $("desc").value.trim();
+  if(!objeto){ return falla("Elegí qué perdiste."); }
+  if(objeto === "Otro" && !desc){ return falla("Contanos qué es en la descripción."); }
+  if(tel.replace(/\D/g,"").length < 8){ return falla("Dejanos un WhatsApp para poder avisarte."); }
+  const dia = $("dia").value ? $("dia").value.split("-").reverse().join("/") : "";
+  const cuando = [dia, $("hora").value ? $("hora").value + " hs" : ""].filter(Boolean).join(" ");
+  const rec = [$("desde").value.trim() && "Desde " + $("desde").value.trim(), $("hasta").value.trim() && "hasta " + $("hasta").value.trim()].filter(Boolean).join(" ");
+  $("btn").disabled = true; $("btn").textContent = "Enviando…"; $("err").style.display = "none";
+  try{
+    const r = await fetch(SB_URL + "/rest/v1/rpc/objetos_perdi", { method:"POST", headers:{ apikey:SB_KEY, Authorization:"Bearer "+SB_KEY, "Content-Type":"application/json" },
+      body: JSON.stringify({ p_objeto: objeto, p_desc: desc, p_cuando: cuando, p_recorrido: rec, p_movil: $("movil").value, p_nombre: $("nom").value.trim(), p_tel: tel }) });
+    const d = await r.json();
+    if(d && d.ok){ $("nro").textContent = "#" + d.nro; $("cForm").classList.add("hidden"); $("cOk").classList.remove("hidden"); window.scrollTo(0,0); return; }
+    falla(d && d.error === "limite" ? "Mandaste varios avisos seguidos. Esperá un rato o llamá a la central." : "No se pudo enviar. Probá de nuevo.");
+  }catch(err){ falla("No se pudo enviar. Revisá la conexión y probá de nuevo."); }
+  finally{ $("btn").disabled = false; $("btn").textContent = "Enviar aviso"; }
+});
+function falla(t){ $("err").textContent = t; $("err").style.display = "block"; }
+</script>
+</body>
+</html>

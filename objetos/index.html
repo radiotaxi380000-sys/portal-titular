@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Objetos perdidos · Radio Taxi 380mil</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0b3d91">
+<link rel="icon" href="../icono-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--azul:#0b3d91;--azul2:#1256c4;--cel:#e8f4ff;--gris:#5b6b82;--borde:#dbe6f5;--fondo:#f3f7fc;--ok:#1a8f5a;--okbg:#e6f6ee;--warn:#b26a00;--warnbg:#fff4e0;--rojo:#c0392b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Inter,system-ui,sans-serif;background:var(--fondo);color:#13233d}
+  header{background:linear-gradient(115deg,#082c6b,#0b3d91 55%,#1f6fe0);color:#fff;padding:14px 18px}
+  .hd{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .hd img{width:42px;height:42px;border-radius:50%;background:#fff}
+  .hd h1{font-size:19px;font-weight:800;flex:1}
+  .hd h1 small{display:block;font-size:11px;letter-spacing:.12em;opacity:.8;font-weight:700}
+  .yo{font-size:13px;opacity:.9}
+  main{max-width:1100px;margin:0 auto;padding:16px}
+  .card{background:#fff;border:1px solid var(--borde);border-radius:14px;padding:16px;margin-bottom:12px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .tabs button{border:1.5px solid var(--borde);background:#fff;border-radius:999px;padding:9px 14px;font:inherit;font-weight:700;font-size:14px;cursor:pointer;color:#24385a}
+  .tabs button.on{background:var(--azul);color:#fff;border-color:var(--azul)}
+  .tabs .n{display:inline-block;min-width:20px;padding:1px 6px;border-radius:10px;background:var(--cel);color:var(--azul);font-size:12px;margin-left:4px}
+  .tabs button.on .n{background:rgba(255,255,255,.25);color:#fff}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+  .it{background:#fff;border:1px solid var(--borde);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px}
+  .it.perdido{border-left:5px solid #f5b301}.it.encontrado{border-left:5px solid var(--azul2)}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .tag{font-size:11px;font-weight:800;border-radius:6px;padding:3px 7px;text-transform:uppercase;letter-spacing:.04em}
+  .tag.perdido{background:#fff3cc;color:#7a5200}.tag.encontrado{background:var(--cel);color:var(--azul)}
+  .tag.abierto{background:#eef1f6;color:#41506a}.tag.ok{background:var(--okbg);color:var(--ok)}.tag.fin{background:#eee;color:#666}
+  .obj{font-size:17px;font-weight:800}
+  .d{font-size:13.5px;color:#24385a;line-height:1.45}
+  .m{font-size:12.5px;color:var(--gris)}
+  .acc{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  button.b,a.b{border:1.5px solid var(--borde);background:#fbfdff;border-radius:9px;padding:8px 11px;font:inherit;font-weight:700;font-size:13px;cursor:pointer;color:var(--azul);text-decoration:none}
+  .b.pri{background:var(--azul);color:#fff;border-color:var(--azul)}
+  .b.wa{background:#1fa855;color:#fff;border-color:#1fa855}
+  .sug{background:var(--warnbg);border:1px solid #f3d9a8;border-radius:10px;padding:10px;font-size:13px}
+  .sug b{color:var(--warn)}
+  .notas{border-top:1px dashed var(--borde);padding-top:6px;font-size:12.5px;color:#41506a}
+  input,select,textarea{width:100%;padding:11px;border:1.5px solid var(--borde);border-radius:10px;font:inherit;font-size:15px;background:#fbfdff;margin-top:5px}
+  label{display:block;font-size:13px;font-weight:600;color:#24385a;margin-top:10px}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .hidden{display:none!important}
+  .login{max-width:380px;margin:40px auto}
+  .err{color:var(--rojo);font-size:14px;margin-top:8px}
+  .vacio{color:var(--gris);padding:30px;text-align:center}
+  .links{font-size:13px;color:var(--gris);line-height:1.7}
+  .links a{color:var(--azul);font-weight:700}
+  @media(max-width:600px){.g2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="hd"><img src="../icono-192.png" alt=""><h1><small>RADIO TAXI 380MIL</small>Objetos perdidos</h1><span class="yo" id="yo"></span></div></header>
+<main>
+  <div class="card login" id="vLogin">
+    <h2 style="font-size:18px">Ingresar</h2>
+    <p class="m" style="margin-top:4px">Para la cobranza y la central.</p>
+    <label>¿Quién sos?<input id="lNom" placeholder="Ej.: Claudio" maxlength="40"></label>
+    <label>Clave<input id="lClave" type="password"></label>
+    <button class="b pri" style="width:100%;margin-top:14px;padding:12px" id="lBtn">Entrar</button>
+    <p class="err" id="lErr"></p>
+  </div>
+
+  <div id="vPanel" class="hidden">
+    <div class="tabs" id="tabs">
+      <button data-f="buscando" class="on">Pasajeros buscando<span class="n" id="n1"></span></button>
+      <button data-f="guardados">Objetos guardados<span class="n" id="n2"></span></button>
+      <button data-f="resueltos">Resueltos<span class="n" id="n3"></span></button>
+      <button data-f="cargar">+ Cargar a mano</button>
+      <button data-f="ayuda">Links</button>
+    </div>
+    <div class="grid" id="lista"></div>
+
+    <div class="card hidden" id="vCargar">
+      <h2 style="font-size:17px">Cargar a mano</h2>
+      <p class="m">Para cuando un pasajero llama por teléfono, o alguien trae algo a la oficina.</p>
+      <label>Tipo<select id="cTipo"><option value="perdido">Un pasajero perdió algo</option><option value="encontrado">Encontramos / nos trajeron algo</option></select></label>
+      <div class="g2"><label>¿Qué es?<input id="cObj" maxlength="120" placeholder="Ej.: Celular"></label><label>Móvil<input id="cMov" inputmode="numeric" maxlength="6"></label></div>
+      <label>Descripción<input id="cDesc" maxlength="800" placeholder="Color, marca, detalles"></label>
+      <div class="g2"><label>¿Cuándo?<input id="cCuando" maxlength="120" placeholder="Ej.: hoy 14 hs"></label><label>Recorrido<input id="cRec" maxlength="300" placeholder="Desde… hasta…"></label></div>
+      <div class="g2"><label>Nombre del pasajero / quién lo trajo<input id="cNom" maxlength="120"></label><label>Teléfono / WhatsApp<input id="cTel" maxlength="40"></label></div>
+      <button class="b pri" style="margin-top:14px;padding:12px 18px" id="cBtn">Guardar</button>
+      <p class="m" id="cMsg" style="margin-top:8px"></p>
+    </div>
+
+    <div class="card hidden links" id="vAyuda">
+      <b>Links para compartir</b><br>
+      Pasajeros que perdieron algo: <a href="../perdi/" target="_blank">titular.radiotaxi380mil.com/perdi</a><br>
+      Choferes que encontraron algo: en el portal del titular, pestaña <b>Info</b>.<br>
+      Este panel: <a href="./">titular.radiotaxi380mil.com/objetos</a> (guardalo en favoritos en todas las PC).<br><br>
+      <b>Cambiar la clave</b>
+      <div class="g2"><input id="kNueva" type="password" placeholder="Clave nueva"><button class="b" id="kBtn">Cambiar</button></div>
+      <p class="m" id="kMsg"></p>
+    </div>
+  </div>
+</main>
+<script>
+const SB_URL = "https://muemdhlrsjlmxvfraljp.supabase.co";
+const SB_KEY = "sb_publishable_WMpo3vPv2NDR5Ms_QEDHyQ_ATzkn46l";
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const st = { get(k){ try{ return localStorage.getItem(k)||""; }catch(e){ return ""; } }, set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} } };
+let clave = st.get("obj_clave"), yo = st.get("obj_yo"), items = [], filtro = "buscando", ultimaN = 0;
+
+async function rpc(fn, body){ const r = await fetch(SB_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:SB_KEY,Authorization:"Bearer "+SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(body)}); if(!r.ok) throw new Error("http "+r.status); return r.json(); }
+const fecha = t => { const d = new Date(t); return d.toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit"})+" "+d.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"}); };
+const waNum = t => { let d = String(t||"").replace(/\D/g,""); if(d.startsWith("0")) d = d.slice(1); if(d.startsWith("54")) return d; d = d.replace(/^(\d{2,4})15/, "$1"); if(d.length===10) return "549"+d; if(d.length===7) return "549341"+d; return d; };
+const STXT = {abierto:"Abierto",encontrado:"Encontrado",entregado:"Entregado",cerrado:"Cerrado"};
+
+async function cargar(){
+  try{
+    const d = await rpc("objetos_listar",{p_clave:clave});
+    if(d.error){ if(d.error==="clave"){ salir("La clave no es correcta."); } return; }
+    items = d.items || []; pintar();
+  }catch(e){}
+}
+function salir(msg){ clave=""; st.set("obj_clave",""); $("vPanel").classList.add("hidden"); $("vLogin").classList.remove("hidden"); $("lErr").textContent = msg||""; }
+$("lBtn").addEventListener("click", async () => {
+  const c = $("lClave").value, n = $("lNom").value.trim();
+  if(!n){ $("lErr").textContent = "Poné tu nombre."; return; }
+  try{ const d = await rpc("objetos_listar",{p_clave:c}); if(d.error){ $("lErr").textContent = d.error==="limite"?"Demasiados intentos. Esperá unos minutos.":"Clave incorrecta."; return; }
+    clave=c; yo=n; st.set("obj_clave",c); st.set("obj_yo",n); items=d.items||[]; entrar(); }catch(e){ $("lErr").textContent = "Sin conexión."; }
+});
+function entrar(){ $("vLogin").classList.add("hidden"); $("vPanel").classList.remove("hidden"); $("yo").innerHTML = "👤 "+esc(yo)+' · <a href="#" id="sal" style="color:#fff">salir</a>'; $("sal").onclick = e => { e.preventDefault(); salir(); }; pintar(); }
+
+function coincide(p, e){ // sugerencia: un encontrado parecido a un perdido
+  if(e.estado!=="abierto"||e.tipo!=="encontrado") return false;
+  const dias = Math.abs(new Date(e.creado)-new Date(p.creado))/864e5; if(dias>7) return false;
+  const mov = p.movil && e.movil && p.movil.replace(/^0+/,"")===e.movil.replace(/^0+/,"");
+  const pal = w => String(w||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+  const mismo = pal(p.objeto)===pal(e.objeto) || pal(e.descripcion).includes(pal(p.objeto)) || pal(p.descripcion).includes(pal(e.objeto));
+  return mov || mismo;
+}
+function tarjeta(o){
+  const fin = o.estado==="entregado"||o.estado==="cerrado";
+  const sCls = o.estado==="abierto"?"abierto":fin?"fin":"ok";
+  let h = `<div class="it ${o.tipo}"><div class="top"><span><span class="tag ${o.tipo}">${o.tipo==="perdido"?"Pasajero busca":"Guardado"}</span> <span class="tag ${sCls}">${STXT[o.estado]}</span></span><b class="m">#${o.nro}</b></div>
+    <div class="obj">${esc(o.objeto)}</div>${o.descripcion?`<div class="d">${esc(o.descripcion)}</div>`:""}
+    <div class="m">${[o.cuando&&"🕘 "+esc(o.cuando), o.recorrido&&"📍 "+esc(o.recorrido), o.movil&&"🚕 Móvil "+esc(o.movil)].filter(Boolean).join("<br>")}</div>
+    <div class="m">${[o.contacto_nombre&&"👤 "+esc(o.contacto_nombre), o.contacto_tel&&"📞 "+esc(o.contacto_tel)].filter(Boolean).join(" · ")}${(o.contacto_nombre||o.contacto_tel)?"<br>":""}${esc(o.origen)} · ${fecha(o.creado)}</div>`;
+  if(o.vinculo){ const v = items.find(x=>x.id===o.vinculo); if(v) h += `<div class="m">🔗 Vinculado con #${v.nro} (${esc(v.objeto)})</div>`; }
+  if(o.tipo==="perdido" && o.estado==="abierto"){
+    const sugs = items.filter(e=>coincide(o,e));
+    if(sugs.length) h += `<div class="sug"><b>¿Será alguno de estos?</b>${sugs.map(e=>`<div style="margin-top:6px">#${e.nro} · ${esc(e.objeto)}${e.descripcion?" – "+esc(e.descripcion):""}${e.movil?" · móvil "+esc(e.movil):""} <button class="b" data-vin="${o.id}|${e.id}">Es este</button></div>`).join("")}</div>`;
+  }
+  const notas = o.notas||[]; if(notas.length) h += `<div class="notas">${notas.map(n=>`💬 ${esc(n.t)} <span class="m">— ${esc(n.quien)}, ${fecha(n.at)}</span>`).join("<br>")}</div>`;
+  h += `<div class="acc">`;
+  const tel = o.tipo==="perdido" ? o.contacto_tel : "";
+  if(tel && o.estado==="encontrado"){ const msg = `Hola${o.contacto_nombre?" "+o.contacto_nombre:""}, te escribimos de Radio Taxi 380mil: ¡apareció tu ${o.objeto.toLowerCase()}! (reclamo #${o.nro}). Podés retirarlo en Pueyrredón 382, Rosario, las 24 horas. Traé tu documento. ¡Saludos!`;
+    h += `<a class="b wa" target="_blank" rel="noopener" href="https://wa.me/${waNum(tel)}?text=${encodeURIComponent(msg)}">Avisar por WhatsApp</a>`; }
+  else if(tel && !fin) h += `<a class="b" target="_blank" rel="noopener" href="https://wa.me/${waNum(tel)}">WhatsApp</a>`;
+  if(o.estado==="abierto" && o.tipo==="perdido") h += `<button class="b pri" data-est="${o.id}|encontrado">Apareció</button>`;
+  if(!fin) h += `<button class="b" data-ent="${o.id}">Entregado</button><button class="b" data-est="${o.id}|cerrado">Cerrar</button>`;
+  if(fin) h += `<button class="b" data-est="${o.id}|abierto">Reabrir</button>`;
+  h += `<button class="b" data-nota="${o.id}">Nota</button></div><div class="hidden" id="in-${o.id}"><input placeholder="" maxlength="300"><button class="b pri" style="margin-top:6px" data-ok="${o.id}">Guardar</button></div></div>`;
+  return h;
+}
+function pintar(){
+  const busc = items.filter(o=>o.tipo==="perdido"&&(o.estado==="abierto"||o.estado==="encontrado"));
+  const guard = items.filter(o=>o.tipo==="encontrado"&&(o.estado==="abierto"||o.estado==="encontrado"));
+  const res = items.filter(o=>o.estado==="entregado"||o.estado==="cerrado");
+  $("n1").textContent = busc.length; $("n2").textContent = guard.length; $("n3").textContent = res.length;
+  const abiertos = busc.filter(o=>o.estado==="abierto").length + guard.filter(o=>o.estado==="abierto").length;
+  document.title = (abiertos?"("+abiertos+") ":"") + "Objetos perdidos · 380mil";
+  $("vCargar").classList.toggle("hidden", filtro!=="cargar"); $("vAyuda").classList.toggle("hidden", filtro!=="ayuda");
+  const L = filtro==="buscando"?busc:filtro==="guardados"?guard:filtro==="resueltos"?res:null;
+  $("lista").classList.toggle("hidden", !L);
+  if(L) $("lista").innerHTML = L.length ? L.map(tarjeta).join("") : '<div class="vacio">No hay nada acá por ahora.</div>';
+}
+document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => { filtro = b.dataset.f; document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b)); pintar(); }));
+let pendiente = null;
+async function accion(id, estado, vinculo, nota){ try{ const d = await rpc("objetos_accion",{p_clave:clave,p_id:id,p_estado:estado||null,p_vinculo:vinculo||null,p_nota:nota||null,p_quien:yo}); if(d.error==="clave") return salir("La clave cambió."); }catch(e){ alertar("No se pudo guardar."); } await cargar(); }
+function alertar(t){ $("yo").textContent = t; setTimeout(()=>entrar(),2500); }
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-est],[data-vin],[data-ent],[data-nota],[data-ok]"); if(!t) return;
+  if(t.dataset.est){ const [id,es] = t.dataset.est.split("|"); accion(id, es, null, es==="encontrado"?"Marcado como encontrado":es==="cerrado"?"Cerrado":"Reabierto"); }
+  if(t.dataset.vin){ const [p,en] = t.dataset.vin.split("|"); accion(p, "encontrado", en, "Coincide con lo guardado"); }
+  if(t.dataset.ent || t.dataset.nota){ const id = t.dataset.ent||t.dataset.nota; const box = $("in-"+id); box.classList.remove("hidden"); const inp = box.querySelector("input"); inp.placeholder = t.dataset.ent?"¿A quién se entregó? (nombre y DNI)":"Escribí la nota"; inp.focus(); pendiente = {id, ent: !!t.dataset.ent}; }
+  if(t.dataset.ok){ const box = $("in-"+t.dataset.ok), v = box.querySelector("input").value.trim(); if(!v) return; const p = pendiente&&pendiente.id===t.dataset.ok?pendiente:{ent:false};
+    accion(t.dataset.ok, p.ent?"entregado":null, null, p.ent?"Entregado a: "+v:v); }
+});
+$("cBtn").addEventListener("click", async () => {
+  if(!$("cObj").value.trim()){ $("cMsg").textContent = "Poné qué es."; return; }
+  try{ const d = await rpc("objetos_cargar",{p_clave:clave,p_tipo:$("cTipo").value,p_objeto:$("cObj").value.trim(),p_desc:$("cDesc").value.trim(),p_cuando:$("cCuando").value.trim(),p_recorrido:$("cRec").value.trim(),p_movil:$("cMov").value,p_nombre:$("cNom").value.trim(),p_tel:$("cTel").value.trim(),p_quien:yo});
+    if(d.ok){ $("cMsg").textContent = "Guardado con el número #"+d.nro+"."; ["cObj","cDesc","cCuando","cRec","cMov","cNom","cTel"].forEach(i=>$(i).value=""); cargar(); } else $("cMsg").textContent = "No se pudo guardar."; }
+  catch(e){ $("cMsg").textContent = "Sin conexión."; }
+});
+$("kBtn").addEventListener("click", async () => { const n = $("kNueva").value; try{ const d = await rpc("objetos_cambiar_clave",{p_clave:clave,p_nueva:n}); if(d.ok){ clave=n; st.set("obj_clave",n); $("kMsg").textContent = "Clave cambiada. Avisales a los demás."; $("kNueva").value=""; } else $("kMsg").textContent = d.error==="corta"?"Mínimo 4 caracteres.":"No se pudo cambiar."; }catch(e){ $("kMsg").textContent = "Sin conexión."; } });
+
+if(clave && yo){ $("lNom").value = yo; rpc("objetos_listar",{p_clave:clave}).then(d => { if(d.error) return salir(); items = d.items||[]; entrar(); }).catch(()=>{}); }
+setInterval(() => { const f = document.activeElement; if(f && f.closest && f.closest("#lista,#vCargar,#vAyuda") && f.tagName==="INPUT") return; if(clave && !$("vPanel").classList.contains("hidden")) cargar(); }, 30000);
+</script>
+</body>
+</html>

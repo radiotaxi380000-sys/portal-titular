@@ -102,6 +102,9 @@
   .nov-img{display:block;width:100%;margin-top:10px;border-radius:12px;border:1px solid var(--borde);cursor:zoom-in;min-height:60px;background:var(--fondo)}
   .nov-vid{position:relative;margin-top:10px;padding-top:56.25%;border-radius:12px;overflow:hidden;background:#000}
   .nov-vid iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .ochips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .ochips button{border:1.5px solid var(--borde);background:#fbfdff;border-radius:999px;padding:7px 12px;font:inherit;font-weight:600;font-size:13px;cursor:pointer;color:#24385a}
+  .ochips button.on{border-color:var(--azul2);background:var(--celeste-claro);color:var(--azul)}
   .lnk{color:var(--azul);font-weight:700;text-decoration:none}
 
   /* Ingreso */
@@ -278,6 +281,19 @@
     </div>
 
     <div id="tInfo" class="pane hidden">
+      <div class="card" id="cardObj">
+        <h2>¿Encontraste algo en el auto?</h2>
+        <p class="muted">Avisanos qué encontraste y dejalo en <b>Pueyrredón 382</b> (abierto las 24 hs). Así se lo devolvemos al pasajero.</p>
+        <div class="ochips" id="oChips"><button type="button">Celular</button><button type="button">Billetera</button><button type="button">Llaves</button><button type="button">Documentos</button><button type="button">Mochila / bolso</button><button type="button">Paraguas</button><button type="button">Anteojos</button><button type="button">Otro</button></div>
+        <label for="oDesc">Descripción</label>
+        <input id="oDesc" maxlength="300" placeholder="Color, marca, qué tiene…">
+        <label for="oCuando">¿Cuándo y en qué viaje?</label>
+        <input id="oCuando" maxlength="120" placeholder="Ej.: hoy 15 hs, viaje de Oroño a la Terminal">
+        <label for="oQuien">¿Quién lo encontró?</label>
+        <input id="oQuien" maxlength="80" placeholder="Nombre del chofer">
+        <button class="btn btn-primary" id="oBtn" type="button">Avisar a la central</button>
+        <p class="muted" id="oMsg" style="margin-top:10px"></p>
+      </div>
       <div class="card">
         <h2>Choferes de tu móvil</h2>
         <ul class="list" id="lChof"></ul>
@@ -515,6 +531,24 @@ function salir(){
 $("btnSalir").addEventListener("click", salir);
 $("btnSalir2").addEventListener("click", salir);
 $("btnVolver").addEventListener("click", mostrarFlota);
+
+/* Encontré un objeto */
+let oObj = "";
+document.querySelectorAll("#oChips button").forEach(b => b.addEventListener("click", () => { oObj = b.textContent; document.querySelectorAll("#oChips button").forEach(x => x.classList.toggle("on", x === b)); }));
+$("oBtn").addEventListener("click", async () => {
+  const desc = $("oDesc").value.trim();
+  if(!oObj){ $("oMsg").textContent = "Elegí qué encontraste."; return; }
+  if(oObj === "Otro" && !desc){ $("oMsg").textContent = "Contanos qué es en la descripción."; return; }
+  if(!sesion || !actual){ $("oMsg").textContent = "Volvé a ingresar al portal."; return; }
+  $("oBtn").disabled = true; $("oMsg").textContent = "Enviando…";
+  try{
+    const d = await rpc("objetos_encontre", { p_movil: actual.movil, p_dni: sesion.dni, p_objeto: oObj, p_desc: desc, p_cuando: $("oCuando").value.trim(), p_quien: $("oQuien").value.trim() });
+    if(d && d.ok){ $("oMsg").innerHTML = `<b>¡Gracias!</b> Quedó registrado con el número <b>#${d.nro}</b>. Dejalo en Pueyrredón 382 y mencioná ese número.`;
+      ["oDesc","oCuando"].forEach(id => $(id).value = ""); oObj = ""; document.querySelectorAll("#oChips button").forEach(x => x.classList.remove("on")); }
+    else $("oMsg").textContent = "No se pudo enviar. Probá de nuevo o llamá a la central.";
+  }catch(e){ $("oMsg").textContent = "No se pudo enviar. Revisá la conexión."; }
+  finally{ $("oBtn").disabled = false; }
+});
 
 /* Instalar como app */
 let instalarEvt = null;
