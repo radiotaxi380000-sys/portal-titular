@@ -416,9 +416,9 @@ function mostrar(r){
     ? '<div class="aviso ok">¡Gracias por estar al día!' + (mon || r.plan === "Sin cargo" ? '' : ' Seguís recibiendo viajes de la central con normalidad.') + '</div>'
     : avisoDeuda(r);
 
-  const waPedir = p => `https://wa.me/${WA}?text=${encodeURIComponent(`Hola, soy ${lindo(datos.nombre)}, del móvil ${r.movil}. ¿Me pueden mandar el comprobante del pago del ${p.f} (ticket ${p.t})? Gracias.`)}`;
+  const waPedir = p => `https://wa.me/${WA}?text=${encodeURIComponent(`Hola, soy ${lindo(datos.nombre)}, del móvil ${r.movil}. ¿Me pueden mandar el comprobante del pago del ${p.f}${p.h?` a las ${p.h}`:""} (ticket ${p.t})? Gracias.`)}`;
   $("lPagos").innerHTML = pagos.length ? pagos.map(p =>
-    `<li><div class="row"><div><div class="f">${p.sp?`Semana ${esc(p.sp)} <span class="d" style="display:inline">· ${esc(p.f)}</span>`:esc(p.f)}</div><div class="d">${esc(p.txt||"Pago registrado")}</div>
+    `<li><div class="row"><div><div class="f">${p.sp?`Semana ${esc(p.sp)} <span class="d" style="display:inline">· ${esc(p.f)}${p.h?` · ${esc(p.h)} hs`:""}</span>`:esc(p.f)}</div><div class="d">${esc(p.txt||"Pago registrado")}</div>
        <a class="lnk" style="font-size:13px;display:inline-block;margin-top:6px" href="${waPedir(p)}" target="_blank" rel="noopener">Pedir comprobante</a></div>
      <span class="i">${p.i ? pesos(p.i) : ""}</span></div></li>`).join("")
     : '<li class="muted">Todavía no hay pagos registrados en el sistema nuevo.</li>';
