@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grabar el video · 380mil</title><meta name="robots" content="noindex"><meta name="theme-color" content="#0b3d91">
+<style>
+*{box-sizing:border-box;margin:0}body{font-family:system-ui,-apple-system,Roboto,sans-serif;background:#0b3d91;color:#fff;min-height:100vh;display:flex;flex-direction:column}
+header{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;font-weight:700}
+header small{opacity:.8;font-weight:600}
+.barra{height:6px;background:rgba(255,255,255,.2);margin:0 18px;border-radius:3px;overflow:hidden}.barra i{display:block;height:100%;background:#ffd54a;width:0;transition:width .3s}
+main{flex:1;padding:18px;display:flex;flex-direction:column}
+.tit{font-size:15px;font-weight:700;color:#ffd54a;letter-spacing:.05em;text-transform:uppercase}
+.txt{font-size:26px;line-height:1.45;font-weight:600;margin-top:10px;flex:1}
+.est{font-size:15px;opacity:.9;min-height:22px;margin:10px 0;text-align:center}
+.bot{display:flex;gap:10px;justify-content:center;align-items:center;padding-bottom:20px}
+button{font:inherit;border:0;border-radius:14px;padding:14px 16px;font-weight:700;font-size:16px;cursor:pointer}
+.rec{width:84px;height:84px;border-radius:50%;background:#e53935;color:#fff;font-size:15px;box-shadow:0 0 0 6px rgba(255,255,255,.25)}
+.rec.on{animation:p 1s infinite;background:#fff;color:#e53935}@keyframes p{50%{box-shadow:0 0 0 14px rgba(255,255,255,.15)}}
+.sec{background:rgba(255,255,255,.15);color:#fff}.pri{background:#ffd54a;color:#0b3d91}
+button:disabled{opacity:.35}
+.ok{display:inline-block;background:#1e8449;border-radius:8px;padding:2px 8px;font-size:13px;margin-left:6px}
+.fin{text-align:center;font-size:20px;line-height:1.5;padding:30px 10px}
+</style></head><body>
+<header><span>🎙️ Grabá tu voz</span><small id="cont"></small></header>
+<div class="barra"><i id="bar"></i></div>
+<main id="m">
+  <div class="tit" id="tit"></div>
+  <div class="txt" id="txt"></div>
+  <div class="est" id="est">Tocá el botón rojo, leé el texto y volvé a tocarlo al terminar.</div>
+  <div class="bot">
+    <button class="sec" id="ant">◀</button>
+    <button class="sec" id="oir" disabled>▶ Escuchar</button>
+    <button class="rec" id="rec">Grabar</button>
+    <button class="pri" id="sig" disabled>Siguiente ▶</button>
+  </div>
+</main>
+<script>
+const P = [{"t": "Inicio", "x": "Hola chicos. Les hice este video cortito para contarles las novedades de la PC de la central. Mírenlo hasta el final, que son cosas que vamos a usar todos los días."}, {"t": "Pestañas", "x": "Ahora Chrome abre solo, con tres pestañas fijas a la izquierda. Viajes ART, con la tarifa de LVC. El Tarifador, como siempre. Y Central 380 mil, que es la pantalla nueva. Esas tres no las cierren. Si alguien la cierra sin querer, Chrome pregunta antes."}, {"t": "Panel", "x": "En la pestaña Central 380 mil tienen todo junto. Primero, Autorizados, con los viajes del Centro de Salud. Y al lado, los objetos perdidos."}, {"t": "Alarma", "x": "Cuando el Centro de Salud manda un mail de autorización, en más o menos un minuto aparece este cartel rojo y suena la chicharra. Y no para de sonar hasta que alguien toca, Lo vi."}, {"t": "LO VI", "x": "Al tocar Lo vi, ponen su nombre y su contraseña. La primera vez, la contraseña es 1234, y el sistema les pide que elijan una propia. Es personal, no se la pasen a nadie, porque queda registrado quién vio cada aviso."}, {"t": "Botones", "x": "Después, en cada autorización tienen estos botones. Viaje hecho, cuando ya mandaron el auto, y ponen el número de móvil. Nota, para dejar algo anotado. Y Anular, si el centro lo cancela."}, {"t": "Para más tarde", "x": "Si el viaje es para más tarde, o para mañana, tocan Es para más tarde, eligen el día y la hora, y a esa hora vuelve a sonar, para que nadie se olvide."}, {"t": "Cargar a mano", "x": "Si una autorización llega por WhatsApp, por teléfono o en papel, la cargan con el botón Cargar a mano, y queda igual que las demás."}, {"t": "Objetos perdidos", "x": "Con los objetos perdidos funciona igual. Cuando entra un reclamo, del 147 o de un pasajero, suena, y alguien toca Lo vi."}, {"t": "Apareció / No apareció", "x": "Le preguntan por radio al móvil. Si el chofer lo tiene, tocan Apareció, y le dicen que lo deje en Pueyrredón 382. Si no lo tiene, tocan No apareció."}, {"t": "Recordatorio", "x": "Si el móvil no contesta, tocan recordar en una, dos o tres horas."}, {"t": "Vuelve a sonar", "x": "A esa hora vuelve a sonar, aunque haya cambiado el turno. El que esté, le vuelve a preguntar al móvil, y toca Ya pregunté."}, {"t": "Cargar objeto", "x": "Si un chofer trae algo a la base, o llama un pasajero por teléfono, lo cargan con Cargar objeto."}, {"t": "Cambio de turno", "x": "Y en cada cambio de turno, a las 6:05, a las 14:05, y a las 22:05, si quedó algo pendiente del turno anterior, suena este aviso. El que entra lo lee y toca Enterado, con su nombre y contraseña. Así nadie arranca el turno sin saber qué quedó."}, {"t": "La oficina", "x": "Las respuestas al grupo del 147 y los mensajes por WhatsApp los mandamos nosotros desde la oficina. Ustedes solamente cargan, y marcan lo que pasó."}, {"t": "Cierre", "x": "Eso es todo. Cualquier duda, me consultan. ¡Gracias, chicos!"}];
+const TOKEN = new URLSearchParams(location.search).get("k") || "";
+const SB = "https://muemdhlrsjlmxvfraljp.supabase.co/rest/v1/rpc/grabacion_subir", KEY = "sb_publishable_WMpo3vPv2NDR5Ms_QEDHyQ_ATzkn46l";
+const $ = id => document.getElementById(id);
+let i = 0, rec = null, chunks = [], stream = null, audios = {}, subidos = {};
+function pintar(){
+  $("cont").textContent = "Parte " + (i+1) + " de " + P.length;
+  $("bar").style.width = (Object.keys(subidos).length / P.length * 100) + "%";
+  $("tit").innerHTML = (i+1) + ". " + P[i].t + (subidos[i] ? '<span class="ok">✓ grabada</span>' : "");
+  $("txt").textContent = P[i].x;
+  $("oir").disabled = !audios[i]; $("sig").disabled = !subidos[i]; $("ant").disabled = i===0;
+  $("sig").textContent = i === P.length-1 ? "Terminar ✓" : "Siguiente ▶";
+  $("rec").textContent = audios[i] ? "Repetir" : "Grabar";
+}
+async function subir(n, blob){
+  $("est").textContent = "Guardando…";
+  const b64 = await new Promise(r => { const f = new FileReader(); f.onload = () => r(String(f.result).split(",")[1]); f.readAsDataURL(blob); });
+  for(let t=0;t<3;t++){
+    try{ const r = await fetch(SB,{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json"},body:JSON.stringify({p_token:TOKEN,p_parte:n+1,p_mime:blob.type,p_datos:b64})});
+      const d = await r.json(); if(d.ok){ subidos[n] = true; $("est").textContent = "✓ Guardada. Escuchala si querés, o pasá a la siguiente."; pintar(); return; } }catch(e){}
+    await new Promise(r=>setTimeout(r,1500));
+  }
+  $("est").textContent = "No se pudo guardar. Revisá internet y tocá Repetir.";
+}
+$("rec").onclick = async () => {
+  if(rec && rec.state === "recording"){ rec.stop(); return; }
+  try{ stream = stream || await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}}); }
+  catch(e){ $("est").textContent = "Necesito permiso para usar el micrófono. Aceptalo y probá de nuevo."; return; }
+  chunks = []; rec = new MediaRecorder(stream); const n = i;
+  rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+  rec.onstop = () => { const blob = new Blob(chunks,{type:rec.mimeType}); audios[n] = URL.createObjectURL(blob); $("rec").classList.remove("on"); pintar(); subir(n, blob); };
+  rec.start(); $("rec").classList.add("on"); $("rec").textContent = "Parar"; $("est").textContent = "🔴 Grabando… leé tranquilo y tocá Parar al terminar.";
+};
+$("oir").onclick = () => { if(audios[i]) new Audio(audios[i]).play(); };
+$("ant").onclick = () => { if(i>0){ i--; $("est").textContent=""; pintar(); } };
+$("sig").onclick = () => {
+  if(i < P.length-1){ i++; $("est").textContent = subidos[i] ? "" : "Tocá el botón rojo y leé el texto."; pintar(); window.scrollTo(0,0); return; }
+  if(stream) stream.getTracks().forEach(t=>t.stop());
+  $("m").innerHTML = '<div class="fin">🎉 <b>¡Listo, Daniel!</b><br><br>Grabaste las ' + P.length + ' partes.<br>Avisame en el chat de Claude y armo el video con tu voz.</div>';
+};
+if(!TOKEN) $("est").textContent = "Abrí este link desde el que te mandé en el chat.";
+pintar();
+</script></body></html>
