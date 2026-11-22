@@ -254,6 +254,12 @@ document.addEventListener("click", async e => { const b = e.target.closest("[dat
       rpc("objetos_set_movil",{p_clave:clave,p_id:o.id,p_movil:o.movil}).catch(()=>{});
     }
     const d = await rpc("objetos_titular",{p_clave:clave,p_movil:o.movil});
+    const cd = Number(d && d.cuotas_deuda)||0, sal = Number(d && d.saldo)||0, mon = /monitoreo/i.test(d && d.plan||"");
+    if(mon ? cd >= 15 : cd > 5){
+      const ok = confirm(`⚠️ OJO: el móvil ${o.movil} figura con deuda grande\n\n${d.plan||""} · ${cd} cuotas · $ ${sal.toLocaleString("es-AR")}\n\nAl entrar al portal el titular va a ver ese saldo. Revisá en la cobranza que esté bien antes de mandarle la invitación.\n\n¿Ya lo revisaste y querés seguir?`);
+      if(!ok){ rpc("objetos_accion",{p_clave:clave,p_id:o.id,p_estado:null,p_vinculo:null,p_nota:`Pendiente: revisar deuda del móvil ${o.movil} (${cd} cuotas, $ ${sal.toLocaleString("es-AR")}) antes de avisar al titular`,p_quien:yo}).then(cargar).catch(()=>{});
+        b.textContent = "Frenado: revisá la deuda en la cobranza"; setTimeout(() => { b.disabled = false; b.textContent = txt0; }, 5000); return; }
+    }
     const msg = msgTitular(o, d && d.titular);
     let tel = d && d.tel ? waNum(d.tel) : "";
     if(tel.length < 12){ const t = prompt("No tenemos el teléfono del titular del móvil "+o.movil+".\nSi lo sabés, escribilo (queda guardado para la próxima). Si no, dejalo vacío:");
