@@ -115,6 +115,19 @@
     </div>
   </div>
 </main>
+<div id="mVi" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:16px;padding:20px;max-width:360px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.3)">
+    <h3 style="margin:0 0 4px;color:#0b3d91">👁 ¿Quién lo vio?</h3>
+    <p id="mViObj" style="margin:0 0 12px;font-size:14px;color:#555"></p>
+    <div id="mViP1"><label style="display:block;font-size:13px">Tu nombre<input id="mViNom" autocomplete="off" style="width:100%;margin-top:4px"></label>
+      <label style="display:block;font-size:13px;margin-top:8px">Tu contraseña<input id="mViPass" type="password" style="width:100%;margin-top:4px"></label>
+      <p style="font-size:12px;color:#777;margin:6px 0 0">¿Primera vez? Poné tu nombre y la contraseña <b>1234</b>; después te pide una nueva.</p></div>
+    <div id="mViP2" class="hidden"><p style="font-size:14px;margin:0 0 8px"><b>Elegí tu contraseña personal</b> (mínimo 4, no puede ser 1234). Es solo tuya: no se la pases a nadie.</p>
+      <label style="display:block;font-size:13px">Contraseña nueva<input id="mViN1" type="password" style="width:100%;margin-top:4px"></label>
+      <label style="display:block;font-size:13px;margin-top:8px">Repetila<input id="mViN2" type="password" style="width:100%;margin-top:4px"></label></div>
+    <div id="mViErr" style="color:#c0392b;font-size:13px;min-height:18px;margin-top:8px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px"><button class="b" id="mViNo">Cancelar</button><button class="b pri" id="mViOk">Confirmar</button></div>
+  </div></div>
 <script>
 const SB_URL = "https://muemdhlrsjlmxvfraljp.supabase.co";
 const SB_KEY = "sb_publishable_WMpo3vPv2NDR5Ms_QEDHyQ_ATzkn46l";
@@ -159,7 +172,7 @@ function tarjeta(o){
     <div class="obj">${esc(o.objeto)}</div>${o.descripcion?`<div class="d">${esc(o.descripcion)}</div>`:""}
     <div class="m">${[o.cuando&&"🕘 "+esc(o.cuando), o.recorrido&&"📍 "+esc(o.recorrido), o.movil&&"🚕 Móvil "+esc(o.movil)].filter(Boolean).join("<br>")}</div>
     <div class="m">${[o.contacto_nombre&&"👤 "+esc(o.contacto_nombre), o.contacto_tel&&"📞 "+esc(o.contacto_tel)].filter(Boolean).join(" · ")}${(o.contacto_nombre||o.contacto_tel)?"<br>":""}${esc(o.origen)} · ${fecha(o.creado)}</div>`;
-  if(faltaAvisar(o)) h += `<div style="background:#e8f8ef;border:1px solid #1e8449;color:#145a32;border-radius:10px;padding:8px 10px;margin:6px 0;font-weight:600">📣 Apareció: falta avisarle a ${esCior(o)?"el 147":"el pasajero"} desde el WhatsApp de la oficina <button class="b" data-avisado="${o.id}">Ya le avisé</button></div>`;
+  if(faltaAvisar(o)) h += `<div style="background:#e8f8ef;border:1px solid #1e8449;color:#145a32;border-radius:10px;padding:8px 10px;margin:6px 0;font-weight:600">📣 Apareció: falta avisarle ${esCior(o)?"al 147":"al pasajero"} desde el WhatsApp de la oficina <button class="b" data-avisado="${o.id}">Ya le avisé</button></div>`;
   if(o.avisado_en) h += `<div class="m">📣 Avisado por ${esc(o.avisado_por||"")} · ${fecha(o.avisado_en)}</div>`;
   if(o.visto_por) h += `<div class="m">👁 Lo vio ${esc(o.visto_por)}${o.visto_en?" · "+fecha(o.visto_en):""}</div>`;
   if(o.vinculo){ const v = items.find(x=>x.id===o.vinculo); if(v) h += `<div class="m">🔗 Vinculado con #${v.nro} (${esc(v.objeto)})</div>`; }
@@ -201,7 +214,7 @@ function avisos(){
   const L = esWa() ? items.filter(faltaAvisar) : [];
   const box = $("avisar"); box.classList.toggle("hidden", !L.length);
   if(L.length) box.innerHTML = L.map(o => `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0">
-      <div><b style="font-size:17px">📣 Apareció: ${esc(o.objeto)}</b><br><span style="opacity:.9;font-size:13px">#${o.nro} · Hay que avisarle a ${esCior(o)?"el grupo del 147":"el pasajero"}${o.movil?" · Móvil "+esc(o.movil):""}</span></div>
+      <div><b style="font-size:17px">📣 Apareció: ${esc(o.objeto)}</b><br><span style="opacity:.9;font-size:13px">#${o.nro} · Hay que avisarle ${esCior(o)?"al grupo del 147":"al pasajero"}${o.movil?" · Móvil "+esc(o.movil):""}</span></div>
       <button class="b" style="background:#fff;color:#1e8449;border-color:#fff" data-ir="${o.id}">CONTESTAR</button></div>`).join("");
   if(L.length && Date.now()-ultAviso > 30000){ ultAviso = Date.now(); const a = audio(); if(a && a.state!=="suspended") [523,659,784].forEach((f,i)=>tono(f,i*.18,.25)); }
 }
@@ -220,8 +233,27 @@ function alarma(){
       <div><b style="font-size:17px">🔔 ${o.tipo==="perdido"?"Pasajero busca":"Chofer encontró"}: ${esc(o.objeto)}</b><br><span style="opacity:.9;font-size:13px">#${o.nro} · ${esc(o.origen)}${o.movil?" · Móvil "+esc(o.movil):""} · ${fecha(o.creado)}</span></div>
       <button class="b" data-visto="${o.id}">LO VI</button></div>`).join("");
 }
-document.addEventListener("click", async e => { const v = e.target.closest("[data-visto]"); if(!v) return; v.disabled = true; v.textContent = "…";
-  try{ await rpc("objetos_visto",{p_clave:clave,p_id:v.dataset.visto,p_quien:yo}); }catch(err){} cargar(); });
+let viId = null, viPaso = 1;
+function viAbrir(id){ const o = items.find(x=>x.id===id); viId = id; viPaso = 1;
+  $("mViObj").textContent = o ? `#${o.nro} · ${o.objeto}` : ""; $("mViNom").value = st.get("obj_vi_nom"); $("mViPass").value = ""; $("mViN1").value = ""; $("mViN2").value = "";
+  $("mViP1").classList.remove("hidden"); $("mViP2").classList.add("hidden"); $("mViErr").textContent = ""; $("mVi").classList.remove("hidden");
+  setTimeout(() => ($("mViNom").value ? $("mViPass") : $("mViNom")).focus(), 50); }
+function viCerrar(){ $("mVi").classList.add("hidden"); viId = null; }
+async function viOk(){
+  const nom = $("mViNom").value.trim(), pass = $("mViPass").value; let nueva = null;
+  if(nom.length < 2) return $("mViErr").textContent = "Poné tu nombre.";
+  if(viPaso === 2){ nueva = $("mViN1").value; if(nueva !== $("mViN2").value) return $("mViErr").textContent = "Las dos contraseñas no coinciden.";
+    if(nueva.length < 4 || nueva === "1234") return $("mViErr").textContent = "Tiene que tener al menos 4 caracteres y no puede ser 1234."; }
+  $("mViOk").disabled = true; $("mViErr").textContent = "";
+  try{ const d = await rpc("objetos_visto_usr",{p_clave:clave,p_id:viId,p_nombre:nom,p_pass:pass,p_nueva:nueva});
+    if(d.cambiar){ viPaso = 2; $("mViP1").classList.add("hidden"); $("mViP2").classList.remove("hidden"); setTimeout(()=>$("mViN1").focus(),50); }
+    else if(d.ok){ st.set("obj_vi_nom", d.nombre||nom); viCerrar(); cargar(); }
+    else $("mViErr").textContent = ({pass:"Contraseña incorrecta. Si te la olvidaste, pedile a Daniel que te la blanquee.",nuevo:"No te encuentro. Si es tu primera vez, la contraseña es 1234.",nueva:"Tiene que tener al menos 4 caracteres y no puede ser 1234.",limite:"Demasiados intentos. Esperá unos minutos.",nombre:"Poné tu nombre.",clave:"La clave del panel cambió."})[d.error] || "No se pudo. Probá de nuevo.";
+  }catch(err){ $("mViErr").textContent = "Sin conexión. Probá de nuevo."; }
+  $("mViOk").disabled = false; }
+$("mViOk").addEventListener("click", viOk); $("mViNo").addEventListener("click", viCerrar);
+$("mVi").addEventListener("keydown", e => { if(e.key==="Enter") viOk(); if(e.key==="Escape") viCerrar(); });
+document.addEventListener("click", e => { const v = e.target.closest("[data-visto]"); if(v) viAbrir(v.dataset.visto); });
 
 function pintar(){
   alarma(); avisos();
@@ -345,7 +377,7 @@ $("cBtn").addEventListener("click", async () => {
 $("kBtn").addEventListener("click", async () => { const n = $("kNueva").value; try{ const d = await rpc("objetos_cambiar_clave",{p_clave:clave,p_nueva:n}); if(d.ok){ clave=n; st.set("obj_clave",n); $("kMsg").textContent = "Clave cambiada. Avisales a los demás."; $("kNueva").value=""; } else $("kMsg").textContent = d.error==="corta"?"Mínimo 4 caracteres.":"No se pudo cambiar."; }catch(e){ $("kMsg").textContent = "Sin conexión."; } });
 
 if(clave && yo){ $("lNom").value = yo; rpc("objetos_listar",{p_clave:clave}).then(d => { if(d.error) return salir(); items = d.items||[]; entrar(); }).catch(()=>{}); }
-setInterval(() => { const f = document.activeElement; if(f && f.closest && f.closest("#lista,#vCargar,#vAyuda") && f.tagName==="INPUT") return; if(clave && !$("vPanel").classList.contains("hidden")) cargar(); }, 15000);
+setInterval(() => { const f = document.activeElement; if(f && f.closest && f.closest("#lista,#vCargar,#vAyuda,#mVi") && f.tagName==="INPUT") return; if(clave && !$("vPanel").classList.contains("hidden")) cargar(); }, 15000);
 </script>
 </body>
 </html>
