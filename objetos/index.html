@@ -51,6 +51,8 @@
   .vacio{color:var(--gris);padding:30px;text-align:center}
   .links{font-size:13px;color:var(--gris);line-height:1.7}
   .links a{color:var(--azul);font-weight:700}
+  @keyframes lat{from{box-shadow:0 0 0 0 rgba(192,57,43,.5)}to{box-shadow:0 0 0 10px rgba(192,57,43,0)}}
+  #alarma .b{background:#fff;color:#c0392b;border-color:#fff;font-size:15px;padding:10px 16px}
   @media(max-width:600px){.g2{grid-template-columns:1fr}}
 </style>
 </head>
@@ -67,6 +69,8 @@
   </div>
 
   <div id="vPanel" class="hidden">
+    <div id="alarma" class="hidden" style="background:#c0392b;color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px;animation:lat 1s infinite alternate"></div>
+    <div id="sonidoOff" class="hidden" style="background:#fff4e0;border:1px solid #f3d9a8;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:14px">🔇 El sonido está desactivado en esta PC. <button class="b pri" id="actSon">Activar sonido</button></div>
     <div class="tabs" id="tabs">
       <button data-f="buscando" class="on">Pasajeros buscando<span class="n" id="n1"></span></button>
       <button data-f="guardados">Objetos guardados<span class="n" id="n2"></span></button>
@@ -153,6 +157,7 @@ function tarjeta(o){
     <div class="obj">${esc(o.objeto)}</div>${o.descripcion?`<div class="d">${esc(o.descripcion)}</div>`:""}
     <div class="m">${[o.cuando&&"🕘 "+esc(o.cuando), o.recorrido&&"📍 "+esc(o.recorrido), o.movil&&"🚕 Móvil "+esc(o.movil)].filter(Boolean).join("<br>")}</div>
     <div class="m">${[o.contacto_nombre&&"👤 "+esc(o.contacto_nombre), o.contacto_tel&&"📞 "+esc(o.contacto_tel)].filter(Boolean).join(" · ")}${(o.contacto_nombre||o.contacto_tel)?"<br>":""}${esc(o.origen)} · ${fecha(o.creado)}</div>`;
+  if(o.visto_por) h += `<div class="m">👁 Lo vio ${esc(o.visto_por)}${o.visto_en?" · "+fecha(o.visto_en):""}</div>`;
   if(o.vinculo){ const v = items.find(x=>x.id===o.vinculo); if(v) h += `<div class="m">🔗 Vinculado con #${v.nro} (${esc(v.objeto)})</div>`; }
   if(o.tipo==="perdido" && o.estado==="abierto"){
     const sugs = items.filter(e=>coincide(o,e));
@@ -175,7 +180,26 @@ function tarjeta(o){
   h += `<button class="b" data-nota="${o.id}">Nota</button></div><div class="hidden" id="in-${o.id}"><input placeholder="" maxlength="300"><button class="b pri" style="margin-top:6px" data-ok="${o.id}">Guardar</button></div></div>`;
   return h;
 }
+/* ---------- Alarma: suena en todas las PC hasta que alguien toca "LO VI" ---------- */
+let actx = null, sonando = false;
+function audio(){ try{ if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} return actx; }
+function tono(f, t0, d){ const a = audio(); if(!a) return; const o = a.createOscillator(), g = a.createGain(); o.type="square"; o.frequency.value=f; g.gain.setValueAtTime(.0001,a.currentTime+t0); g.gain.exponentialRampToValueAtTime(.35,a.currentTime+t0+.02); g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+t0+d); o.connect(g); g.connect(a.destination); o.start(a.currentTime+t0); o.stop(a.currentTime+t0+d+.05); }
+function chicharra(){ [880,660,880,660,990].forEach((f,i)=>tono(f,i*.22,.2)); }
+setInterval(() => { if(!sonando) return; const a = audio(); if(a && a.state==="suspended"){ $("sonidoOff").classList.remove("hidden"); return; } $("sonidoOff").classList.add("hidden"); chicharra(); }, 3000);
+$("actSon").addEventListener("click", async () => { const a = audio(); try{ await a.resume(); }catch(e){} $("sonidoOff").classList.add("hidden"); chicharra(); });
+function alarma(){
+  const nuevos = items.filter(o => !o.visto_en && o.estado==="abierto");
+  sonando = nuevos.length > 0;
+  const box = $("alarma"); box.classList.toggle("hidden", !sonando);
+  if(sonando) box.innerHTML = nuevos.map(o => `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0">
+      <div><b style="font-size:17px">🔔 ${o.tipo==="perdido"?"Pasajero busca":"Chofer encontró"}: ${esc(o.objeto)}</b><br><span style="opacity:.9;font-size:13px">#${o.nro} · ${esc(o.origen)}${o.movil?" · Móvil "+esc(o.movil):""} · ${fecha(o.creado)}</span></div>
+      <button class="b" data-visto="${o.id}">LO VI</button></div>`).join("");
+}
+document.addEventListener("click", async e => { const v = e.target.closest("[data-visto]"); if(!v) return; v.disabled = true; v.textContent = "…";
+  try{ await rpc("objetos_visto",{p_clave:clave,p_id:v.dataset.visto,p_quien:yo}); }catch(err){} cargar(); });
+
 function pintar(){
+  alarma();
   const busc = items.filter(o=>o.tipo==="perdido"&&(o.estado==="abierto"||o.estado==="encontrado"));
   const guard = items.filter(o=>o.tipo==="encontrado"&&(o.estado==="abierto"||o.estado==="encontrado"));
   const res = items.filter(o=>o.estado==="entregado"||o.estado==="cerrado");
@@ -253,7 +277,7 @@ $("cBtn").addEventListener("click", async () => {
 $("kBtn").addEventListener("click", async () => { const n = $("kNueva").value; try{ const d = await rpc("objetos_cambiar_clave",{p_clave:clave,p_nueva:n}); if(d.ok){ clave=n; st.set("obj_clave",n); $("kMsg").textContent = "Clave cambiada. Avisales a los demás."; $("kNueva").value=""; } else $("kMsg").textContent = d.error==="corta"?"Mínimo 4 caracteres.":"No se pudo cambiar."; }catch(e){ $("kMsg").textContent = "Sin conexión."; } });
 
 if(clave && yo){ $("lNom").value = yo; rpc("objetos_listar",{p_clave:clave}).then(d => { if(d.error) return salir(); items = d.items||[]; entrar(); }).catch(()=>{}); }
-setInterval(() => { const f = document.activeElement; if(f && f.closest && f.closest("#lista,#vCargar,#vAyuda") && f.tagName==="INPUT") return; if(clave && !$("vPanel").classList.contains("hidden")) cargar(); }, 30000);
+setInterval(() => { const f = document.activeElement; if(f && f.closest && f.closest("#lista,#vCargar,#vAyuda") && f.tagName==="INPUT") return; if(clave && !$("vPanel").classList.contains("hidden")) cargar(); }, 15000);
 </script>
 </body>
 </html>
