@@ -37,7 +37,7 @@ const P = [{"t": "Inicio", "x": "Hola chicos. Les hice este video cortito para c
 const TOKEN = new URLSearchParams(location.search).get("k") || "";
 const SB = "https://muemdhlrsjlmxvfraljp.supabase.co/rest/v1/rpc/grabacion_subir", KEY = "sb_publishable_WMpo3vPv2NDR5Ms_QEDHyQ_ATzkn46l";
 const $ = id => document.getElementById(id);
-let i = 0, rec = null, chunks = [], stream = null, audios = {}, subidos = {};
+let reproductor = new Audio(); let i = 0, rec = null, chunks = [], stream = null, audios = {}, subidos = {};
 function pintar(){
   $("cont").textContent = "Parte " + (i+1) + " de " + P.length;
   $("bar").style.width = (Object.keys(subidos).length / P.length * 100) + "%";
@@ -52,23 +52,26 @@ async function subir(n, blob){
   const b64 = await new Promise(r => { const f = new FileReader(); f.onload = () => r(String(f.result).split(",")[1]); f.readAsDataURL(blob); });
   for(let t=0;t<3;t++){
     try{ const r = await fetch(SB,{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"Content-Type":"application/json"},body:JSON.stringify({p_token:TOKEN,p_parte:n+1,p_mime:blob.type,p_datos:b64})});
-      const d = await r.json(); if(d.ok){ subidos[n] = true; $("est").textContent = "✓ Guardada. Escuchala si querés, o pasá a la siguiente."; pintar(); return; } }catch(e){}
+      const d = await r.json(); if(d.ok){ subidos[n] = true; $("est").textContent = "✓ Guardada (vale solo la última que grabes). Escuchala o pasá a la siguiente."; pintar(); return; } }catch(e){}
     await new Promise(r=>setTimeout(r,1500));
   }
   $("est").textContent = "No se pudo guardar. Revisá internet y tocá Repetir.";
 }
 $("rec").onclick = async () => {
   if(rec && rec.state === "recording"){ rec.stop(); return; }
+  reproductor.pause(); $("oir").textContent="▶ Escuchar";
   try{ stream = stream || await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}}); }
   catch(e){ $("est").textContent = "Necesito permiso para usar el micrófono. Aceptalo y probá de nuevo."; return; }
   chunks = []; rec = new MediaRecorder(stream); const n = i;
   rec.ondataavailable = e => e.data.size && chunks.push(e.data);
   rec.onstop = () => { const blob = new Blob(chunks,{type:rec.mimeType}); audios[n] = URL.createObjectURL(blob); $("rec").classList.remove("on"); pintar(); subir(n, blob); };
+  if(audios[i]) URL.revokeObjectURL(audios[i]); delete audios[i];
   rec.start(); $("rec").classList.add("on"); $("rec").textContent = "Parar"; $("est").textContent = "🔴 Grabando… leé tranquilo y tocá Parar al terminar.";
 };
-$("oir").onclick = () => { if(audios[i]) new Audio(audios[i]).play(); };
-$("ant").onclick = () => { if(i>0){ i--; $("est").textContent=""; pintar(); } };
-$("sig").onclick = () => {
+$("oir").onclick = () => { if(!audios[i]) return; if(!reproductor.paused){ reproductor.pause(); $("oir").textContent="▶ Escuchar"; return; } reproductor.src = audios[i]; reproductor.currentTime = 0; reproductor.play(); $("oir").textContent="⏸ Parar"; };
+reproductor.onended = () => { $("oir").textContent="▶ Escuchar"; };
+$("ant").onclick = () => { reproductor.pause(); $("oir").textContent="▶ Escuchar"; if(i>0){ i--; $("est").textContent=""; pintar(); } };
+$("sig").onclick = () => { reproductor.pause(); $("oir").textContent="▶ Escuchar";
   if(i < P.length-1){ i++; $("est").textContent = subidos[i] ? "" : "Tocá el botón rojo y leé el texto."; pintar(); window.scrollTo(0,0); return; }
   if(stream) stream.getTracks().forEach(t=>t.stop());
   $("m").innerHTML = '<div class="fin">🎉 <b>¡Listo, Daniel!</b><br><br>Grabaste las ' + P.length + ' partes.<br>Avisame en el chat de Claude y armo el video con tu voz.</div>';
