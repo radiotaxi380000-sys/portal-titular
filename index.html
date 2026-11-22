@@ -297,7 +297,16 @@
       <div class="card">
         <h2>Choferes de tu móvil</h2>
         <ul class="list" id="lChof"></ul>
-        <p class="muted" style="margin-top:8px">¿Falta alguno o hay que dar de baja? Avisanos en la cobranza.</p>
+        <div id="chVacio" class="aviso" style="background:var(--celeste-claro);border-color:var(--borde);color:#24385a">Todavía no tenemos cargados los choferes de este móvil. Cuando puedas, cargalos acá abajo, o mandanos una foto por WhatsApp y los cargamos nosotros.</div>
+        <label for="chNom">Nombre y apellido del chofer</label>
+        <input id="chNom" maxlength="80" placeholder="Ej.: Juan Pérez">
+        <div class="grid2" style="margin-top:0">
+          <div><label for="chDni">DNI</label><input id="chDni" inputmode="numeric" maxlength="10" placeholder="Sin puntos"></div>
+          <div><label for="chTel">Teléfono</label><input id="chTel" inputmode="tel" maxlength="30" placeholder="Opcional"></div>
+        </div>
+        <button class="btn btn-primary" id="chBtn" type="button">Agregar chofer</button>
+        <p class="muted" id="chMsg" style="margin-top:8px"></p>
+        <a class="btn btn-wa" id="chFoto" href="#" target="_blank" rel="noopener">📷 Mandar foto por WhatsApp</a>
       </div>
       <div class="card">
         <h2>App para choferes</h2>
@@ -442,8 +451,7 @@ function mostrar(r){
     ? '<div class="aviso ok">No te quedó nada pendiente.</div>'
     : `<div class="aviso">Te quedó un saldo pendiente de <b>${pesos(r.saldo)}</b>.</div>`;
 
-  const ch = r.choferes || [];
-  $("lChof").innerHTML = ch.length ? ch.map(c => `<li class="f">👤 ${esc(lindo(c))}</li>`).join("") : '<li class="muted">No hay choferes cargados para este móvil.</li>';
+  pintarChoferes(r);
 
   const msg = `Hola, soy ${lindo(datos.nombre)}, del móvil ${r.movil}. Les aviso que hice una transferencia. Adjunto el comprobante.`;
   $("btnWa").href = `https://wa.me/${WA}?text=${encodeURIComponent(msg)}`;
@@ -531,6 +539,28 @@ function salir(){
 $("btnSalir").addEventListener("click", salir);
 $("btnSalir2").addEventListener("click", salir);
 $("btnVolver").addEventListener("click", mostrarFlota);
+
+/* Choferes del móvil: los carga el titular o la oficina */
+function pintarChoferes(r){
+  const ch = (r.choferes || []).filter(c => c && typeof c === "object");
+  $("lChof").innerHTML = ch.map(c => `<li><div class="row"><span class="f">👤 ${esc(lindo(c.nombre))}</span><button class="copy" data-chq="${esc(c.id)}">Quitar</button></div></li>`).join("");
+  $("chVacio").classList.toggle("hidden", ch.length > 0);
+  const msg = `Hola, soy ${lindo(datos.nombre)}, del móvil ${r.movil}. Les mando la foto con los choferes de mi móvil para que los carguen.`;
+  $("chFoto").href = `https://wa.me/${WA}?text=${encodeURIComponent(msg)}`;
+}
+async function refrescar(){ const d = await rpc("portal_ingresar",{p_movil:sesion.movil,p_dni:sesion.dni}); if(d && !d.error){ datos = d; const r = movilDe(actual.movil); if(r){ actual = r; pintarChoferes(r); } } }
+$("chBtn").addEventListener("click", async () => {
+  const n = $("chNom").value.trim();
+  if(n.length < 3){ $("chMsg").textContent = "Poné el nombre y apellido."; return; }
+  $("chBtn").disabled = true; $("chMsg").textContent = "Guardando…";
+  try{ const d = await rpc("portal_chofer_agregar",{p_movil:actual.movil,p_dni:sesion.dni,p_nombre:n,p_dni_chofer:$("chDni").value,p_tel:$("chTel").value.trim()});
+    if(d && d.ok){ ["chNom","chDni","chTel"].forEach(i => $(i).value = ""); $("chMsg").textContent = "Listo, chofer agregado."; await refrescar(); }
+    else $("chMsg").textContent = d && d.error==="limite" ? "Ya hay muchos choferes cargados en este móvil." : "No se pudo guardar. Probá de nuevo."; }
+  catch(e){ $("chMsg").textContent = "Sin conexión."; } finally{ $("chBtn").disabled = false; }
+});
+document.addEventListener("click", async e => { const b = e.target.closest("[data-chq]"); if(!b) return;
+  if(b.dataset.ok !== "1"){ b.dataset.ok = "1"; b.textContent = "¿Seguro?"; setTimeout(() => { b.dataset.ok = ""; b.textContent = "Quitar"; }, 4000); return; }
+  b.disabled = true; try{ await rpc("portal_chofer_quitar",{p_movil:actual.movil,p_dni:sesion.dni,p_id:b.dataset.chq}); await refrescar(); }catch(err){ b.disabled = false; } });
 
 /* Encontré un objeto */
 let oObj = "";
