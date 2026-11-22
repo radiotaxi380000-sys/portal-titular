@@ -264,8 +264,8 @@ function ciMsg(o, ok){
   const ra = (String(o.descripcion||"").match(/R\.A\. (\d+)/)||[,""])[1];
   const ref = `R.A. ${ra||"—"}${o.cuando?" · "+o.cuando:""} · ${o.objeto}`;
   return ok
-    ? `✅ *380mil – Objeto encontrado*\n${ref}\nEl pasajero puede retirarlo en *Pueyrredón 382*, las 24 horas, con su DNI. Reclamo N° ${o.nro}.`
-    : `📥 *380mil – Reclamo recibido*\n${ref}\nYa lo estamos buscando con el chofer. Reclamo N° ${o.nro}. Les avisamos apenas tengamos novedades.`;
+    ? `✅ *380mil – Objeto encontrado*\n${ref}\nEl pasajero puede retirarlo en *Pueyrredón 382*, las 24 horas, con su DNI.`
+    : `📥 *380mil – Reclamo recibido*\n${ref}\nYa estamos tratando de comunicarnos con el chofer. Les avisamos apenas tengamos novedades.`;
 }
 function ciLeer(t){
   const get = k => { const m = t.match(new RegExp("^\\s*"+k+"\\s*:\\s*(.+)$","im")); return m ? m[1].trim().replace(/\.$/,"") : ""; };
