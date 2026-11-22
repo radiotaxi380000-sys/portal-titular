@@ -178,7 +178,7 @@ $("lBtn").addEventListener("click", async () => {
   try{ const d = await rpc("objetos_listar",{p_clave:c}); if(d.error){ $("lErr").textContent = d.error==="limite"?"Demasiados intentos. Esperá unos minutos.":"Clave incorrecta."; return; }
     clave=c; yo=n; st.set("obj_clave",c); st.set("obj_yo",n); turnosV = d.turnos||turnosV; if(d.rol){ rol=d.rol; st.set("obj_rol",rol); } items=d.items||[]; entrar(); }catch(e){ $("lErr").textContent = "Sin conexión."; }
 });
-function entrar(){ cargarAut().then(()=>pintar()); $("vLogin").classList.add("hidden"); $("vPanel").classList.remove("hidden"); $("yo").innerHTML = "👤 "+esc(yo)+' · <a href="#" id="sal" style="color:#fff">salir</a>'; $("sal").onclick = e => { e.preventDefault(); salir(); }; pintar(); }
+function entrar(){ cargarAut().then(()=>pintar()); $("vLogin").classList.add("hidden"); $("vPanel").classList.remove("hidden"); $("yo").innerHTML = "👤 "+esc(yo)+' · <a href="#" id="sal" style="color:#fff">salir</a>'; $("sal").onclick = e => { e.preventDefault(); if(!ofi() && !confirm("Si salís, el panel deja de sonar hasta que alguien vuelva a entrar con la clave. ¿Salir igual?")) return; salir(); }; pintar(); }
 
 function coincide(p, e){ // sugerencia: un encontrado parecido a un perdido
   if(e.estado!=="abierto"||e.tipo!=="encontrado") return false;
@@ -519,7 +519,13 @@ document.addEventListener("click", e => {
   }
 });
 document.addEventListener("keydown", e => { if(e.key!=="Enter") return; const b = e.target.closest && e.target.closest("[id^='ain-']"); if(b){ const k = b.querySelector("[data-aok]"); if(k) k.click(); } });
-if(clave && yo){ $("lNom").value = yo; rpc("objetos_listar",{p_clave:clave}).then(d => { if(d.error) return salir(); turnosV = d.turnos||turnosV; if(d.rol){ rol=d.rol; st.set("obj_rol",rol); } items = d.items||[]; entrar(); }).catch(()=>{}); }
+function arrancar(intento){ if(!(clave && yo)) return; $("lNom").value = yo; $("lErr").textContent = intento ? "Conectando… (reintento "+intento+")" : "";
+  rpc("objetos_listar",{p_clave:clave}).then(d => {
+    if(d.error==="clave") return salir("La clave no es correcta. Pedila en la oficina.");
+    if(d.error) return setTimeout(() => arrancar((intento||0)+1), 15000);
+    turnosV = d.turnos||turnosV; if(d.rol){ rol=d.rol; st.set("obj_rol",rol); } items = d.items||[]; entrar(); })
+  .catch(() => setTimeout(() => arrancar((intento||0)+1), 10000)); }
+arrancar(0);
 setInterval(() => { const f = document.activeElement; if(f && f.closest && f.closest("#lista,#vCargar,#vAyuda,#mVi,#aLista,#aForm") && /INPUT|SELECT/.test(f.tagName)) return; if(clave && !$("vPanel").classList.contains("hidden")) cargar(); }, 15000);
 </script>
 </body>
