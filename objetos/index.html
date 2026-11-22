@@ -117,10 +117,11 @@
 </main>
 <div id="mVi" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px">
   <div style="background:#fff;border-radius:16px;padding:20px;max-width:360px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.3)">
-    <h3 style="margin:0 0 4px;color:#0b3d91">👁 ¿Quién lo vio?</h3>
+    <h3 id="mViTit" style="margin:0 0 4px;color:#0b3d91">👁 ¿Quién lo vio?</h3>
     <p id="mViObj" style="margin:0 0 12px;font-size:14px;color:#555"></p>
     <div id="mViP1"><label style="display:block;font-size:13px">Tu nombre<input id="mViNom" autocomplete="off" style="width:100%;margin-top:4px"></label>
       <label style="display:block;font-size:13px;margin-top:8px">Tu contraseña<input id="mViPass" type="password" style="width:100%;margin-top:4px"></label>
+      <label id="mViNotaBox" class="hidden" style="display:block;font-size:13px;margin-top:8px">¿Qué pasó? (opcional)<input id="mViNota" maxlength="300" placeholder="Ej.: el chofer no lo tiene / sigue sin contestar" style="width:100%;margin-top:4px"></label>
       <p style="font-size:12px;color:#777;margin:6px 0 0">¿Primera vez? Poné tu nombre y la contraseña <b>1234</b>; después te pide una nueva.</p></div>
     <div id="mViP2" class="hidden"><p style="font-size:14px;margin:0 0 8px"><b>Elegí tu contraseña personal</b> (mínimo 4, no puede ser 1234). Es solo tuya: no se la pases a nadie.</p>
       <label style="display:block;font-size:13px">Contraseña nueva<input id="mViN1" type="password" style="width:100%;margin-top:4px"></label>
@@ -134,7 +135,7 @@ const SB_KEY = "sb_publishable_WMpo3vPv2NDR5Ms_QEDHyQ_ATzkn46l";
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const st = { get(k){ try{ return localStorage.getItem(k)||""; }catch(e){ return ""; } }, set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} } };
-let rol = st.get("obj_rol")||"operador"; const ofi = () => rol==="oficina";
+let turnosV = []; let rol = st.get("obj_rol")||"operador"; const ofi = () => rol==="oficina";
 let clave = st.get("obj_clave"), yo = st.get("obj_yo"), items = [], filtro = "buscando", ultimaN = 0;
 
 async function rpc(fn, body){ const r = await fetch(SB_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:SB_KEY,Authorization:"Bearer "+SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(body)}); if(!r.ok) throw new Error("http "+r.status); return r.json(); }
@@ -146,7 +147,7 @@ async function cargar(){
   try{
     const d = await rpc("objetos_listar",{p_clave:clave});
     if(d.error){ if(d.error==="clave"){ salir("La clave no es correcta."); } return; }
-    if(d.rol){ rol = d.rol; st.set("obj_rol", rol); } items = d.items || []; pintar();
+    turnosV = d.turnos||turnosV; if(d.rol){ rol = d.rol; st.set("obj_rol", rol); } items = d.items || []; pintar();
   }catch(e){}
 }
 function salir(msg){ clave=""; st.set("obj_clave",""); $("vPanel").classList.add("hidden"); $("vLogin").classList.remove("hidden"); $("lErr").textContent = msg||""; }
@@ -154,7 +155,7 @@ $("lBtn").addEventListener("click", async () => {
   const c = $("lClave").value, n = $("lNom").value.trim();
   if(!n){ $("lErr").textContent = "Poné tu nombre."; return; }
   try{ const d = await rpc("objetos_listar",{p_clave:c}); if(d.error){ $("lErr").textContent = d.error==="limite"?"Demasiados intentos. Esperá unos minutos.":"Clave incorrecta."; return; }
-    clave=c; yo=n; st.set("obj_clave",c); st.set("obj_yo",n); if(d.rol){ rol=d.rol; st.set("obj_rol",rol); } items=d.items||[]; entrar(); }catch(e){ $("lErr").textContent = "Sin conexión."; }
+    clave=c; yo=n; st.set("obj_clave",c); st.set("obj_yo",n); turnosV = d.turnos||turnosV; if(d.rol){ rol=d.rol; st.set("obj_rol",rol); } items=d.items||[]; entrar(); }catch(e){ $("lErr").textContent = "Sin conexión."; }
 });
 function entrar(){ $("vLogin").classList.add("hidden"); $("vPanel").classList.remove("hidden"); $("yo").innerHTML = "👤 "+esc(yo)+' · <a href="#" id="sal" style="color:#fff">salir</a>'; $("sal").onclick = e => { e.preventDefault(); salir(); }; pintar(); }
 
@@ -195,6 +196,8 @@ function tarjeta(o){
     h += `<a class="b wa" data-av="${o.id}" target="_blank" rel="noopener" href="https://wa.me/${waNum(tel)}?text=${encodeURIComponent(msg)}">Avisar por WhatsApp</a>`; }
   else if(tel && !fin) h += `<a class="b" target="_blank" rel="noopener" href="https://wa.me/${waNum(tel)}">WhatsApp</a>`;
   if(ofi() && o.tipo==="perdido" && o.estado==="abierto") h += `<button class="b wa" data-tit="${o.id}">📲 Avisar al titular${o.movil?" del móvil "+esc(o.movil):""}</button>`;
+  if(o.estado==="abierto" && o.recordar_en){ const rt = new Date(o.recordar_en); h += `<div class="m" style="width:100%;color:#a35a00;font-weight:600">⏰ Volver a preguntar a las ${pad2(rt.getHours())}:${pad2(rt.getMinutes())}${rt<=new Date()?" (¡ya es hora!)":""}</div>`; }
+  if(o.estado==="abierto" && o.tipo==="perdido" && o.visto_en) h += `<div style="width:100%;display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px;color:#555">⏰ No contestó, recordar en: <button class="b" data-recor="${o.id}|1">1 h</button><button class="b" data-recor="${o.id}|2">2 h</button><button class="b" data-recor="${o.id}|3">3 h</button></div>`;
   if(o.estado==="abierto" && o.tipo==="perdido") h += `<button class="b pri" data-est="${o.id}|encontrado">Apareció</button><button class="b" data-noap="${o.id}">No apareció</button>`;
   if(!fin) h += `<button class="b" data-ent="${o.id}">Entregado</button><button class="b" data-est="${o.id}|cerrado">Cerrar</button>`;
   if(fin) h += `<button class="b" data-est="${o.id}|abierto">Reabrir</button>`;
@@ -242,17 +245,30 @@ document.addEventListener("click", e => {
   const g = e.target.closest("[data-ir]"); if(g){ const og = items.find(x=>x.id===g.dataset.ir); filtro = og && noAp(og) ? "resueltos" : "buscando"; document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x.dataset.f===filtro)); pintar();
     setTimeout(() => { const el = document.querySelector(`[data-avisado="${g.dataset.ir}"]`); if(el) el.closest(".it").scrollIntoView({behavior:"smooth",block:"center"}); }, 50); }
 });
+const pad2 = n => String(n).padStart(2,"0");
+function turnoActual(){ const n = new Date(), t = new Date(n); const h = n.getHours(); let b;
+  if(h>=22) b=22; else if(h>=14) b=14; else if(h>=6) b=6; else { b=22; t.setDate(t.getDate()-1); }
+  t.setHours(b,5,0,0); return { key:`${t.getFullYear()}-${pad2(t.getMonth()+1)}-${pad2(t.getDate())} ${pad2(b)}`, desde:t, nombre: b===6?"mañana (6 a 14)":b===14?"tarde (14 a 22)":"noche (22 a 6)" }; }
+const vencidos = () => items.filter(o => o.estado==="abierto" && o.recordar_en && new Date(o.recordar_en) <= new Date());
+function turnoPend(){ if(ofi()) return null; const t = turnoActual(); if(new Date() < t.desde) return null;
+  if(turnosV.some(x => x.turno===t.key)) return null;
+  const L = items.filter(o => o.estado==="abierto" && new Date(o.creado) < t.desde); return L.length ? {t, L} : null; }
 function alarma(){
   const nuevos = items.filter(o => !o.visto_en && o.estado==="abierto");
-  sonando = nuevos.length > 0;
+  const venc = ofi() ? [] : vencidos(), tp = turnoPend();
+  sonando = nuevos.length > 0 || venc.length > 0 || !!tp;
   const box = $("alarma"); box.classList.toggle("hidden", !sonando);
-  if(sonando) box.innerHTML = nuevos.map(o => `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0">
-      <div><b style="font-size:17px">🔔 ${o.tipo==="perdido"?"Pasajero busca":"Chofer encontró"}: ${esc(o.objeto)}</b><br><span style="opacity:.9;font-size:13px">#${o.nro} · ${esc(o.origen)}${o.movil?" · Móvil "+esc(o.movil):""} · ${fecha(o.creado)}</span></div>
-      <button class="b" data-visto="${o.id}">LO VI</button></div>`).join("");
+  const fila = (izq, btn) => `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0">${izq}${btn}</div>`;
+  let h = nuevos.map(o => fila(`<div><b style="font-size:17px">🔔 ${o.tipo==="perdido"?"Pasajero busca":"Chofer encontró"}: ${esc(o.objeto)}</b><br><span style="opacity:.9;font-size:13px">#${o.nro} · ${esc(o.origen)}${o.movil?" · Móvil "+esc(o.movil):""} · ${fecha(o.creado)}</span></div>`, `<button class="b" data-visto="${o.id}">LO VI</button>`)).join("");
+  h += venc.map(o => fila(`<div><b style="font-size:17px">⏰ Volver a preguntar${o.movil?" al móvil "+esc(o.movil):""}: ${esc(o.objeto)}</b><br><span style="opacity:.9;font-size:13px">#${o.nro} · Recordatorio que dejó ${esc(o.recordar_por||"")}</span></div>`, `<button class="b" data-recok="${o.id}">YA PREGUNTÉ</button>`)).join("");
+  if(tp) h += fila(`<div><b style="font-size:17px">🔄 Cambio de turno ${tp.t.nombre}: ${tp.L.length} ${tp.L.length===1?"reclamo sin resolver":"reclamos sin resolver"}</b><br><span style="opacity:.9;font-size:13px">${tp.L.slice(0,5).map(o => "#"+o.nro+" "+esc(o.objeto)+(o.movil?" (móvil "+esc(o.movil)+")":"")).join(" · ")}${tp.L.length>5?" …":""}</span></div>`, `<button class="b" data-turno="${tp.t.key}|${tp.L.length}">ENTERADO</button>`);
+  if(sonando) box.innerHTML = h;
 }
-let viId = null, viPaso = 1;
-function viAbrir(id){ const o = items.find(x=>x.id===id); viId = id; viPaso = 1;
-  $("mViObj").textContent = o ? `#${o.nro} · ${o.objeto}` : ""; $("mViNom").value = st.get("obj_vi_nom"); $("mViPass").value = ""; $("mViN1").value = ""; $("mViN2").value = "";
+let viId = null, viPaso = 1, viModo = "visto", viTurno = null;
+function viAbrir(id, modo, turno){ const o = items.find(x=>x.id===id); viId = id; viPaso = 1; viModo = modo||"visto"; viTurno = turno||null;
+  $("mViTit").textContent = viModo==="turno" ? "🔄 ¿Quién toma el turno?" : viModo==="recor" ? "⏰ ¿Quién volvió a preguntar?" : "👁 ¿Quién lo vio?";
+  $("mViNotaBox").classList.toggle("hidden", viModo!=="recor"); $("mViNota").value = "";
+  $("mViObj").textContent = viModo==="turno" ? "Confirmá que leíste los reclamos pendientes." : o ? `#${o.nro} · ${o.objeto}` : ""; $("mViNom").value = st.get("obj_vi_nom"); $("mViPass").value = ""; $("mViN1").value = ""; $("mViN2").value = "";
   $("mViP1").classList.remove("hidden"); $("mViP2").classList.add("hidden"); $("mViErr").textContent = ""; $("mVi").classList.remove("hidden");
   setTimeout(() => ($("mViNom").value ? $("mViPass") : $("mViNom")).focus(), 50); }
 function viCerrar(){ $("mVi").classList.add("hidden"); viId = null; }
@@ -262,7 +278,9 @@ async function viOk(){
   if(viPaso === 2){ nueva = $("mViN1").value; if(nueva !== $("mViN2").value) return $("mViErr").textContent = "Las dos contraseñas no coinciden.";
     if(nueva.length < 4 || nueva === "1234") return $("mViErr").textContent = "Tiene que tener al menos 4 caracteres y no puede ser 1234."; }
   $("mViOk").disabled = true; $("mViErr").textContent = "";
-  try{ const d = await rpc("objetos_visto_usr",{p_clave:clave,p_id:viId,p_nombre:nom,p_pass:pass,p_nueva:nueva});
+  try{ const d = viModo==="turno" ? await rpc("objetos_turno_ok",{p_clave:clave,p_turno:viTurno.key,p_pendientes:viTurno.n,p_nombre:nom,p_pass:pass,p_nueva:nueva})
+      : viModo==="recor" ? await rpc("objetos_recordatorio_ok",{p_clave:clave,p_id:viId,p_nombre:nom,p_pass:pass,p_nueva:nueva,p_nota:$("mViNota").value.trim()})
+      : await rpc("objetos_visto_usr",{p_clave:clave,p_id:viId,p_nombre:nom,p_pass:pass,p_nueva:nueva});
     if(d.cambiar){ viPaso = 2; $("mViP1").classList.add("hidden"); $("mViP2").classList.remove("hidden"); setTimeout(()=>$("mViN1").focus(),50); }
     else if(d.ok){ st.set("obj_vi_nom", d.nombre||nom); viCerrar(); cargar(); }
     else $("mViErr").textContent = ({pass:"Contraseña incorrecta. Si te la olvidaste, pedile a Daniel que te la blanquee.",nuevo:"No te encuentro. Si es tu primera vez, la contraseña es 1234.",nueva:"Tiene que tener al menos 4 caracteres y no puede ser 1234.",limite:"Demasiados intentos. Esperá unos minutos.",nombre:"Poné tu nombre.",clave:"La clave del panel cambió."})[d.error] || "No se pudo. Probá de nuevo.";
@@ -270,7 +288,11 @@ async function viOk(){
   $("mViOk").disabled = false; }
 $("mViOk").addEventListener("click", viOk); $("mViNo").addEventListener("click", viCerrar);
 $("mVi").addEventListener("keydown", e => { if(e.key==="Enter") viOk(); if(e.key==="Escape") viCerrar(); });
-document.addEventListener("click", e => { const v = e.target.closest("[data-visto]"); if(v) viAbrir(v.dataset.visto); });
+document.addEventListener("click", e => { const v = e.target.closest("[data-visto]"); if(v) viAbrir(v.dataset.visto);
+  const r = e.target.closest("[data-recok]"); if(r) viAbrir(r.dataset.recok, "recor");
+  const t = e.target.closest("[data-turno]"); if(t){ const [key,n] = t.dataset.turno.split("|"); viAbrir(null, "turno", {key, n:Number(n)}); }
+  const k = e.target.closest("[data-recor]"); if(k){ const [id,hs] = k.dataset.recor.split("|"); k.disabled = true;
+    rpc("objetos_recordar",{p_clave:clave,p_id:id,p_horas:Number(hs),p_quien:st.get("obj_vi_nom")||yo}).then(cargar).catch(()=>{}); } });
 
 function pintar(){
   $("waLbl").classList.toggle("hidden", !ofi()); $("tabCior").classList.toggle("hidden", !ofi()); $("kBox").classList.toggle("hidden", !ofi());
@@ -396,7 +418,7 @@ $("cBtn").addEventListener("click", async () => {
 });
 $("kBtn").addEventListener("click", async () => { const n = $("kNueva").value; try{ const d = await rpc("objetos_cambiar_clave",{p_clave:clave,p_nueva:n}); if(d.ok){ clave=n; st.set("obj_clave",n); $("kMsg").textContent = "Clave cambiada. Avisales a los demás."; $("kNueva").value=""; } else $("kMsg").textContent = d.error==="corta"?"Mínimo 4 caracteres.":"No se pudo cambiar."; }catch(e){ $("kMsg").textContent = "Sin conexión."; } });
 
-if(clave && yo){ $("lNom").value = yo; rpc("objetos_listar",{p_clave:clave}).then(d => { if(d.error) return salir(); if(d.rol){ rol=d.rol; st.set("obj_rol",rol); } items = d.items||[]; entrar(); }).catch(()=>{}); }
+if(clave && yo){ $("lNom").value = yo; rpc("objetos_listar",{p_clave:clave}).then(d => { if(d.error) return salir(); turnosV = d.turnos||turnosV; if(d.rol){ rol=d.rol; st.set("obj_rol",rol); } items = d.items||[]; entrar(); }).catch(()=>{}); }
 setInterval(() => { const f = document.activeElement; if(f && f.closest && f.closest("#lista,#vCargar,#vAyuda,#mVi") && f.tagName==="INPUT") return; if(clave && !$("vPanel").classList.contains("hidden")) cargar(); }, 15000);
 </script>
 </body>
