@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portal del Titular · Radio Taxi 380mil</title>
+<meta name="theme-color" content="#0b3d91">
+<meta name="description" content="Portal del Titular de Radio Taxi 380mil: saldo, comprobantes y novedades.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icono-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="380mil Titular">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --azul:#0b3d91; --azul2:#1256c4; --celeste:#4fb3ff; --celeste-claro:#e8f4ff;
+    --gris:#5b6b82; --borde:#dbe6f5; --fondo:#f3f7fc;
+    --ok:#1a8f5a; --ok-bg:#e6f6ee; --warn:#b26a00; --warn-bg:#fff4e0; --rojo:#c0392b; --rojo-bg:#fdecea;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Inter,system-ui,sans-serif;background:var(--fondo);color:#13233d;min-height:100vh}
+  .wrap{max-width:460px;margin:0 auto;padding:0 16px 40px}
+  header{background:linear-gradient(135deg,var(--azul),var(--azul2));color:#fff;padding:22px 16px 60px;position:relative}
+  .hdr{max-width:460px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+  .logo{display:inline-flex;align-items:center;gap:10px}
+  .logo-badge{width:44px;height:44px;border-radius:12px;background:#fff;color:var(--azul);display:grid;place-items:center;font-weight:800;font-size:14px}
+  .logo h1{font-size:20px;font-weight:800;letter-spacing:-.3px;line-height:1.1}
+  .logo small{display:block;font-size:12px;font-weight:500;opacity:.85}
+  .bell{position:relative;background:rgba(255,255,255,.15);border:none;color:#fff;width:42px;height:42px;border-radius:12px;font-size:20px;cursor:pointer}
+  .bell .n{position:absolute;top:-5px;right:-5px;background:#ff4d4f;color:#fff;font-size:11px;font-weight:800;min-width:20px;height:20px;border-radius:10px;display:grid;place-items:center;padding:0 5px;border:2px solid var(--azul)}
+  .card{background:#fff;border:1px solid var(--borde);border-radius:18px;padding:20px;margin-top:14px;box-shadow:0 2px 10px rgba(11,61,145,.05)}
+  .card.first{margin-top:-40px;position:relative;z-index:2}
+  h2{font-size:17px;font-weight:700;margin-bottom:4px}
+  h3{font-size:15px;font-weight:700;margin:18px 0 6px}
+  .muted{color:var(--gris);font-size:14px;line-height:1.45}
+  label{display:block;font-size:13px;font-weight:600;margin:16px 0 6px;color:#24385a}
+  input{width:100%;padding:14px;border:1.5px solid var(--borde);border-radius:12px;font:inherit;font-size:16px;outline:none;background:#fbfdff}
+  input:focus{border-color:var(--azul2);background:#fff}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;border:none;border-radius:12px;font:inherit;font-weight:700;font-size:16px;cursor:pointer;text-decoration:none;margin-top:18px}
+  .btn-primary{background:var(--azul);color:#fff}
+  .btn-wa{background:#1fa855;color:#fff;margin-top:12px}
+  .btn-ghost{background:transparent;color:var(--azul);border:1.5px solid var(--borde);margin-top:14px;font-weight:600}
+  .error{color:var(--rojo);font-size:14px;margin-top:10px;display:none}
+  .demo{margin-top:16px;padding:12px;border-radius:12px;background:var(--celeste-claro);font-size:13px;color:#24385a;line-height:1.6}
+  .demo b{color:var(--azul)}
+  .hello{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .movil{background:var(--celeste-claro);color:var(--azul);font-weight:800;border-radius:10px;padding:8px 12px;font-size:15px;white-space:nowrap}
+  .estado{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:700;margin-top:14px}
+  .estado.ok{background:var(--ok-bg);color:var(--ok)}
+  .estado.warn{background:var(--warn-bg);color:var(--warn)}
+  .saldo{margin-top:16px}
+  .lbl{font-size:13px;color:var(--gris);font-weight:600}
+  .monto{font-size:38px;font-weight:800;letter-spacing:-1px;color:var(--azul);margin-top:2px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  .mini{background:var(--fondo);border-radius:12px;padding:12px}
+  .mini .lbl{font-size:12px}
+  .mini .val{font-size:16px;font-weight:700;margin-top:3px}
+  .aviso{margin-top:16px;padding:14px;border-radius:12px;background:var(--warn-bg);border:1px solid #f3d9a8;font-size:14px;line-height:1.5;color:#5c3b00}
+  .aviso.ok{background:var(--ok-bg);border-color:#bfe6d1;color:#0f5a38}
+  .alerta{margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--azul);color:#fff;font-size:14px;font-weight:600;display:flex;align-items:center;gap:10px;cursor:pointer}
+  .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:14px;background:#fff;border:1px solid var(--borde);border-radius:14px;padding:5px;position:sticky;top:8px;z-index:5}
+  .tab{padding:9px 2px;border:none;background:none;border-radius:10px;font:inherit;font-weight:600;font-size:12.5px;color:var(--gris);cursor:pointer;position:relative}
+  .tab .ic{display:block;font-size:17px;margin-bottom:2px}
+  .tab.on{background:var(--azul);color:#fff}
+  .tab .dot{position:absolute;top:5px;right:calc(50% - 16px);width:9px;height:9px;border-radius:50%;background:#ff4d4f}
+  .list{list-style:none;margin-top:6px}
+  .list li{padding:12px 0;border-bottom:1px solid var(--borde)}
+  .list li:last-child{border-bottom:none}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .f{font-weight:600;font-size:15px}
+  .d{font-size:12.5px;color:var(--gris);margin-top:2px;line-height:1.4}
+  .i{font-weight:700;color:var(--azul);white-space:nowrap}
+  .click{cursor:pointer}
+  .chev{color:var(--gris);font-size:18px;margin-left:6px}
+  .tag{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:3px 7px;margin-right:6px;vertical-align:middle}
+  .tag.alta{background:var(--ok-bg);color:var(--ok)}
+  .tag.baja{background:var(--rojo-bg);color:var(--rojo)}
+  .tag.aviso{background:var(--celeste-claro);color:var(--azul)}
+  .tag.nuevo{background:#ff4d4f;color:#fff}
+  .nov.unread{background:linear-gradient(90deg,var(--celeste-claro),transparent 70%);margin:0 -20px;padding:12px 20px}
+  .nov .txt{font-size:14px;line-height:1.5;margin-top:6px}
+  .medio{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--borde)}
+  .medio:last-child{border-bottom:none}
+  .mic{width:38px;height:38px;border-radius:10px;background:var(--celeste-claro);display:grid;place-items:center;flex-shrink:0;font-size:18px}
+  .copy{display:inline-flex;align-items:center;margin-top:6px;background:var(--fondo);border:1px solid var(--borde);border-radius:8px;padding:6px 10px;font:inherit;font-size:13px;font-weight:600;color:var(--azul);cursor:pointer}
+  .regla{display:flex;gap:10px;padding:8px 0;font-size:14px;line-height:1.45}
+  .regla .x{color:var(--ok);font-weight:800}
+  .pill{display:inline-block;background:var(--fondo);border:1px solid var(--borde);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:600;margin:4px 4px 0 0}
+  a.lnk{color:var(--azul);font-weight:700;text-decoration:none}
+  footer{text-align:center;color:var(--gris);font-size:12px;margin-top:26px;line-height:1.6}
+  .hidden{display:none !important}
+  /* comprobante */
+  .modal{position:fixed;inset:0;background:rgba(10,25,50,.55);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+  .sheet{background:#fff;width:100%;max-width:460px;border-radius:20px 20px 0 0;padding:20px;max-height:90vh;overflow:auto}
+  .ticket{border:1.5px dashed var(--borde);border-radius:14px;padding:16px;font-size:14px}
+  .ticket .t-hd{text-align:center;border-bottom:1px dashed var(--borde);padding-bottom:10px;margin-bottom:10px}
+  .ticket .t-row{display:flex;justify-content:space-between;padding:4px 0}
+  .ticket .t-tot{border-top:1px dashed var(--borde);margin-top:8px;padding-top:8px;font-weight:800;font-size:16px}
+  .ticket .t-ft{text-align:center;color:var(--gris);font-size:12px;margin-top:10px}
+  .logo-img{width:44px;height:44px;border-radius:50%;background:#fff;display:block}
+  .nov-img{display:block;width:100%;margin-top:10px;border-radius:12px;border:1px solid var(--borde);cursor:zoom-in;min-height:60px;background:var(--fondo)}
+  .nov-vid{position:relative;margin-top:10px;padding-top:56.25%;border-radius:12px;overflow:hidden;background:#000}
+  .nov-vid iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .lnk{color:var(--azul);font-weight:700;text-decoration:none}
+
+  /* Ingreso */
+  body:has(#vLogin:not(.hidden)) header{display:none}
+  body:has(#vLogin:not(.hidden)) footer{display:none}
+  .hero{margin:0 -16px;padding:26px 24px 84px;color:#fff;text-align:center;position:relative;overflow:hidden;
+    background:radial-gradient(120% 80% at 50% 0%,#2f7de0 0%,#1256c4 35%,#0b3d91 75%,#082c6b 100%);border-radius:0 0 34px 34px}
+  .hero::after{content:"";position:absolute;width:420px;height:420px;border-radius:50%;right:-180px;bottom:-220px;background:rgba(79,179,255,.18)}
+  .damero{position:absolute;left:0;right:0;top:0;height:14px;opacity:.9;
+    background:repeating-conic-gradient(#fff 0 25%,transparent 0 50%) 0 0/14px 14px}
+  .hero-in{position:relative;z-index:1;padding-top:10px}
+  .hero-logo{width:88px;height:88px;margin:0 auto;border-radius:50%;background:#fff;display:grid;place-items:center;
+    box-shadow:0 0 0 6px rgba(255,255,255,.18),0 0 0 14px rgba(255,255,255,.08),0 12px 30px rgba(0,0,0,.25);animation:pop .7s cubic-bezier(.2,1.4,.4,1) both}
+  .hero-logo img{width:84px;height:84px;border-radius:50%}
+  .hero-marca{margin-top:12px;font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.85;animation:up .6s .15s both}
+  .hero-tit{margin:2px 0 0;font-size:30px;font-weight:900;letter-spacing:-.03em;line-height:1.05;animation:up .6s .22s both}
+  .hero-sub{margin:8px 0 0;font-size:16px;opacity:.9;animation:up .6s .29s both}
+  .chips{display:flex;justify-content:center;gap:8px;margin-top:14px;flex-wrap:wrap;animation:up .6s .36s both}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);
+    padding:7px 12px;border-radius:999px;font-size:13px;font-weight:600;backdrop-filter:blur(4px)}
+  .chip svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .login-card{margin-top:-60px;position:relative;z-index:2;padding:20px 20px;box-shadow:0 18px 40px rgba(11,61,145,.16);animation:up .6s .3s both}
+  .login-card h2{font-size:20px}
+  .field{position:relative}
+  .field svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:22px;height:22px;fill:none;stroke:var(--azul2);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+  .field input{padding-left:48px}
+  .btn-in{background:linear-gradient(135deg,#0b3d91,#1f6fe0);box-shadow:0 8px 20px rgba(18,86,196,.35);font-size:17px}
+  .btn-in span{transition:transform .2s}
+  .btn-in:hover span,.btn-in:active span{transform:translateX(4px)}
+  .btn-in:disabled{opacity:.7}
+  body{padding-bottom:90px}
+  .sello{text-align:center;margin-top:18px;font-size:13px;color:var(--gris)}
+  .sello b{color:var(--azul)}
+  @keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr">
+    <div class="logo">
+      <img src="icono-192.png" alt="" class="logo-img">
+      <h1>Radio Taxi 380mil<small>Portal del Titular</small></h1>
+    </div>
+    <button class="bell hidden" id="bell" aria-label="Novedades">🔔<span class="n hidden" id="bellN"></span></button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- INGRESO -->
+  <section id="vLogin">
+    <div class="hero">
+      <div class="damero" aria-hidden="true"></div>
+      <div class="hero-in">
+        <div class="hero-logo"><img src="icono-192.png" alt="Radio Taxi 380mil"></div>
+        <div class="hero-marca">Radio Taxi 380mil</div>
+        <h1 class="hero-tit">Portal del Titular</h1>
+        <p class="hero-sub">Tu cuenta, en tu celular. Sin hacer fila.</p>
+        <div class="chips">
+          <span class="chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v10H3z M3 10h18 M7 14h3"/></svg>Saldo</span>
+          <span class="chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z M9 8h6 M9 12h6"/></svg>Pagos</span>
+          <span class="chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h3l6 4V6L7 10z M16 9a4 4 0 0 1 0 6"/></svg>Novedades</span>
+        </div>
+      </div>
+    </div>
+    <div class="card login-card">
+      <h2>Ingresá a tu cuenta</h2>
+      <form id="fLogin" autocomplete="off">
+        <label for="iMovil">Número de móvil</label>
+        <div class="field"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16V11l2-5h10l2 5v5 M3 16h18v3H3z M7 19v1 M17 19v1 M5 11h14"/></svg><input id="iMovil" inputmode="numeric" placeholder="Ej: 245"></div>
+        <label for="iDni">DNI del titular</label>
+        <div class="field"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v14H3z M7 10a2 2 0 1 0 4 0a2 2 0 1 0-4 0 M5.5 16c.5-2 5.5-2 6 0 M14 9h4 M14 13h4"/></svg><input id="iDni" inputmode="numeric" placeholder="Sin puntos"></div>
+        <button class="btn btn-primary btn-in" type="submit" id="btnIn">Ingresar <span aria-hidden="true">→</span></button>
+        <p class="error" id="err"></p>
+      </form>
+      <p class="muted" style="margin-top:14px;font-size:13px">¿Tenés varios móviles? Entrá con cualquiera y tu DNI: los ves todos juntos.</p>
+    </div>
+    <div class="sello"><b>Desde 1980</b> · La primera radio taxi de Rosario</div>
+  </section>
+
+  <!-- MIS MÓVILES -->
+  <section id="vFlota" class="hidden">
+    <div class="card first">
+      <div class="hello">
+        <div><p class="muted">Hola,</p><h2 id="fNombre"></h2><p class="muted" id="fCant"></p></div>
+        <div class="movil">🚕</div>
+      </div>
+      <div id="fEstado"></div>
+      <div class="saldo"><div class="lbl">Saldo total de tus móviles</div><div class="monto" id="fTotal"></div></div>
+      <div class="alerta hidden" id="fAlerta"></div>
+    </div>
+    <div class="card">
+      <h2>Mis móviles</h2>
+      <p class="muted">Tocá un móvil para ver su detalle.</p>
+      <ul class="list" id="lFlota"></ul>
+    </div>
+    <button class="btn btn-ghost" id="btnSalir2">Salir</button>
+  </section>
+
+  <!-- CUENTA -->
+  <section id="vCuenta" class="hidden">
+    <button class="btn btn-ghost hidden" id="btnVolver" style="margin-top:-40px;background:#fff;position:relative;z-index:2">← Mis móviles</button>
+    <div class="card first" id="cardCuenta">
+      <div class="hello">
+        <div>
+          <p class="muted">Hola,</p>
+          <h2 id="cNombre"></h2>
+          <p class="muted" id="cPlan"></p>
+        </div>
+        <div class="movil" id="cMovil"></div>
+      </div>
+      <div id="cEstado"></div>
+      <div class="saldo">
+        <div class="lbl">Saldo a pagar</div>
+        <div class="monto" id="cSaldo"></div>
+      </div>
+      <div class="grid2">
+        <div class="mini"><div class="lbl">Cuota semanal</div><div class="val" id="cCuota"></div></div>
+        <div class="mini"><div class="lbl">Último pago</div><div class="val" id="cUlt"></div></div>
+      </div>
+      <div id="cAviso"></div>
+      <div class="alerta hidden" id="cAlerta"></div>
+    </div>
+
+    <nav class="tabs">
+      <button class="tab on" data-t="tNov"><span class="ic">📢</span>Novedades<span class="dot hidden" id="tabDot"></span></button>
+      <button class="tab" data-t="tPagos"><span class="ic">🧾</span>Pagos</button>
+      <button class="tab" data-t="tCupones"><span class="ic">🎫</span>Cupones</button>
+      <button class="tab" data-t="tInfo"><span class="ic">ℹ️</span>Info</button>
+    </nav>
+
+    <div id="tNov" class="pane">
+      <div class="card">
+        <h2>Novedades de la empresa</h2>
+        <p class="muted">Altas y bajas de cuentas corrientes, horarios y avisos de la administración.</p>
+        <ul class="list" id="lNov"></ul>
+      </div>
+    </div>
+
+    <div id="tPagos" class="pane hidden">
+      <div class="card">
+        <h2>Mis pagos</h2>
+        <ul class="list" id="lPagos"></ul>
+        <div id="pPend"></div>
+        <p class="muted" style="margin-top:10px;font-size:13px">¿Necesitás el comprobante de algún pago? Tocá <b>Pedir comprobante</b> y te lo mandamos por WhatsApp.</p>
+      </div>
+      <div class="card">
+        <h2>Cómo pagar</h2>
+        <div class="medio"><div class="mic">🏢</div>
+          <div><div class="f">En ventanilla</div><div class="d">Lunes a jueves de 9 a 17 · Viernes de 9 a 13</div></div></div>
+        <div class="medio"><div class="mic">📲</div>
+          <div><div class="f">Transferencia (Mercado Pago)</div><div class="d">Alias: <b id="aliasMP">radio.380.mil.mp</b></div>
+          <button class="copy" data-c="aliasMP">Copiar alias</button></div></div>
+        <div class="medio"><div class="mic">🏦</div>
+          <div><div class="f">Transferencia (Banco Credicoop)</div><div class="d">Alias: <b id="aliasCC">radio.380.mil</b></div>
+          <button class="copy" data-c="aliasCC">Copiar alias</button></div></div>
+        <p class="muted" style="margin-top:12px">Si transferís, avisanos con el comprobante así lo imputamos a tu móvil.</p>
+        <a class="btn btn-wa" id="btnWa" href="#" target="_blank" rel="noopener">Avisar mi pago por WhatsApp</a>
+        <p class="muted" style="text-align:center;margin-top:8px;font-size:12px">WhatsApp cobranza: 341 313-8944</p>
+      </div>
+    </div>
+
+    <div id="tCupones" class="pane hidden">
+      <div class="card">
+        <h2>Para que no te rechacen un cupón</h2>
+        <div class="regla"><span class="x">✓</span><span>Sin tachaduras ni enmiendas.</span></div>
+        <div class="regla"><span class="x">✓</span><span>La fecha tiene que ser la misma que la del ticket del reloj.</span></div>
+        <div class="regla"><span class="x">✓</span><span>Completo: nombre del pasajero, origen y destino.</span></div>
+        <div class="regla"><span class="x">✓</span><span>Si el pasajero pide un recorrido más largo (por ej. por Circunvalación), anotalo en el cupón.</span></div>
+      </div>
+    </div>
+
+    <div id="tInfo" class="pane hidden">
+      <div class="card">
+        <h2>Choferes de tu móvil</h2>
+        <ul class="list" id="lChof"></ul>
+        <p class="muted" style="margin-top:8px">¿Falta alguno o hay que dar de baja? Avisanos en la cobranza.</p>
+      </div>
+      <div class="card">
+        <h2>App para choferes</h2>
+        <p class="muted">Bajá <b>Taxi 380 mil Drive</b> desde Google Play.</p>
+        <a class="btn btn-primary" href="https://play.google.com/store/search?q=Taxi%20380%20mil%20Drive&c=apps" target="_blank" rel="noopener">Buscar en Google Play</a>
+      </div>
+      <div class="card">
+        <h2>Contacto</h2>
+        <div class="medio"><div class="mic">☎️</div><div><div class="f">Central</div><div class="d"><a class="lnk" href="tel:+543414380000">341 4-380.000</a> · <a class="lnk" href="tel:+543414382222">341 438-2222</a> · <a class="lnk" href="tel:+543414852222">341 485-2222</a></div></div></div>
+        <div class="medio"><div class="mic">💬</div><div><div class="f">Cobranza (WhatsApp)</div><div class="d"><a class="lnk" href="https://wa.me/5493413138944" target="_blank" rel="noopener">341 313-8944</a></div></div></div>
+        <div class="medio"><div class="mic">🕘</div><div><div class="f">Horario de cobranza</div><div class="d">Lunes a jueves de 9 a 17 · Viernes de 9 a 13</div></div></div>
+        <div class="medio"><div class="mic">🌐</div><div><div class="f">Web</div><div class="d"><a class="lnk" href="https://radiotaxi380mil.com" target="_blank" rel="noopener">radiotaxi380mil.com</a></div></div></div>
+      </div>
+      <div class="card" id="cardInstalar">
+        <h2>Tenelo como app</h2>
+        <p class="muted"><b>Android (Chrome):</b> tocá los tres puntitos ⋮ y elegí <b>"Agregar a pantalla de inicio"</b>.<br><b>iPhone (Safari):</b> tocá compartir ⬆️ y elegí <b>"Agregar a inicio"</b>.</p>
+        <button class="btn btn-primary hidden" id="btnInstalar">Instalar app</button>
+      </div>
+    </div>
+
+    <p class="muted" id="cAct" style="text-align:center;font-size:12px;margin-top:12px"></p>
+    <button class="btn btn-ghost" id="btnSalir">Salir</button>
+  </section>
+
+  <footer>Radio Taxi 380mil · Rosario · Desde 1980</footer>
+</div>
+
+<div class="modal hidden" id="modal">
+  <div class="sheet">
+    <div class="ticket" id="ticket"></div>
+    <button class="btn btn-ghost" id="cerrarModal">Cerrar</button>
+  </div>
+</div>
+
+<script>
+const SB_URL = "https://muemdhlrsjlmxvfraljp.supabase.co";
+const SB_KEY = "sb_publishable_WMpo3vPv2NDR5Ms_QEDHyQ_ATzkn46l";
+const WA = "5493413138944";
+const PLAN_COMPLETO_MAS_DE = 5, PLAN_MONITOREO_DESDE = 15;
+
+const $ = id => document.getElementById(id);
+const pesos = n => "$ " + Math.round(n||0).toLocaleString("es-AR");
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const store = { get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }, set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }, del(k){ try{ localStorage.removeItem(k); }catch(e){} } };
+function lindo(n){ n = String(n||"").trim(); if(!n) return "";
+  let s = n.includes(",") ? n.split(",").slice(1).join(" ").trim()+" "+n.split(",")[0].trim() : n;
+  return s.toLowerCase().replace(/\s+/g," ").replace(/(^|\s)\S/g, c => c.toUpperCase()); }
+const primerNombre = n => lindo(n).split(" ")[0] || "";
+const fechaAr = f => f && /^\d{4}-\d{2}-\d{2}$/.test(f) ? f.split("-").reverse().join("/") : (f||"");
+
+let sesion = null, datos = null, misMoviles = [], actual = null;
+
+async function rpc(fn, body){
+  const r = await fetch(SB_URL + "/rest/v1/rpc/" + fn, { method:"POST", headers:{ "apikey":SB_KEY, "Authorization":"Bearer "+SB_KEY, "Content-Type":"application/json" }, body: JSON.stringify(body||{}) });
+  if(!r.ok) throw new Error("http "+r.status);
+  return r.json();
+}
+
+async function ingresar(movil, dni, silencioso){
+  $("btnIn").disabled = true; $("btnIn").textContent = "Ingresando…"; $("err").style.display = "none";
+  try{
+    const d = await rpc("portal_ingresar", { p_movil: movil, p_dni: dni });
+    if(d.error){
+      if(silencioso){ salir(); return; }
+      $("err").textContent = d.error === "demasiados_intentos" ? "Hubo demasiados intentos. Esperá unos minutos y probá de nuevo." : "No encontramos ese móvil con ese DNI. Revisá los datos o consultanos por WhatsApp al 341 313-8944.";
+      $("err").style.display = "block"; return;
+    }
+    datos = d; sesion = { movil, dni: String(dni).replace(/\D/g,"").replace(/^0+/,"") };
+    store.set("p380_ses", JSON.stringify({ movil, dni }));
+    misMoviles = (d.moviles||[]).map(m => m.movil);
+    $("bell").classList.remove("hidden");
+    if(misMoviles.length > 1) mostrarFlota();
+    else mostrar(d.moviles[0]);
+  }catch(e){
+    $("err").textContent = "No se pudo conectar. Revisá tu internet y probá de nuevo."; $("err").style.display = "block";
+    $("vLogin").classList.remove("hidden");
+  }finally{ $("btnIn").disabled = false; $("btnIn").innerHTML = "Ingresar <span aria-hidden=\"true\">→</span>"; }
+}
+
+$("fLogin").addEventListener("submit", e => { e.preventDefault();
+  const m = $("iMovil").value.trim(), d = $("iDni").value.replace(/\D/g,"");
+  if(!m || d.length < 6){ $("err").textContent = "Completá el número de móvil y el DNI."; $("err").style.display = "block"; return; }
+  ingresar(m, d, false);
+});
+
+const movilDe = k => (datos.moviles||[]).find(x => x.movil === k);
+const esMon = r => r.plan === "Monitoreo";
+const nombreSesion = () => primerNombre(datos.nombre) || "titular";
+
+function avisoDeuda(r){
+  const cuotas = Number(r.cuotas_deuda)||0, mon = esMon(r);
+  const plan = mon ? cuotas >= PLAN_MONITOREO_DESDE : cuotas > PLAN_COMPLETO_MAS_DE;
+  if(!mon && cuotas < 2)
+    return '<div class="aviso">Tenés un saldo pendiente. Recordá que el corte de despacho es los <b>miércoles a las 9 hs</b> (si es feriado, el jueves).</div>';
+  return '<div class="aviso">Te recordamos que tenés un saldo pendiente. Tratá de regularizarlo cuando puedas.' + (plan ? ' Si necesitás coordinar un plan de pagos, escribinos.' : '') + '</div>';
+}
+
+function mostrarFlota(){
+  const L = misMoviles.map(movilDe), total = L.reduce((a,r) => a + Math.max(0, Number(r.saldo)||0), 0);
+  $("fNombre").textContent = lindo(datos.nombre);
+  $("fCant").textContent = L.length + " móviles";
+  $("fTotal").textContent = pesos(total);
+  $("fEstado").innerHTML = total <= 0 ? '<span class="estado ok">✓ Todos al día</span>' : '<span class="estado warn">● Hay saldo pendiente</span>';
+  $("lFlota").innerHTML = L.map(r => { const ok = (Number(r.saldo)||0) <= 0;
+    const aNom = !r.propio ? `<div class="d">A nombre de ${esc(lindo(r.titular))}</div>` : "";
+    return `<li class="click" data-m="${esc(r.movil)}"><div class="row">
+      <div><div class="f">Móvil ${esc(r.movil)} <span class="d" style="display:inline">· ${esc(r.plan)}</span></div>${aNom}
+        <span class="estado ${ok?"ok":"warn"}" style="margin-top:6px;padding:3px 9px;font-size:12px">${ok?"✓ Al día":"● Saldo pendiente"}</span></div>
+      <div class="row"><span class="i">${pesos(r.saldo)}</span><span class="chev">›</span></div></div></li>`; }).join("");
+  document.querySelectorAll("#lFlota li").forEach(li => li.addEventListener("click", () => mostrar(movilDe(li.dataset.m))));
+  pintarNovedades();
+  ["vLogin","vCuenta"].forEach(id => $(id).classList.add("hidden"));
+  $("vFlota").classList.remove("hidden");
+  window.scrollTo(0,0);
+}
+
+function mostrar(r){
+  actual = r;
+  $("vFlota").classList.add("hidden");
+  $("btnVolver").classList.toggle("hidden", misMoviles.length < 2);
+  $("cardCuenta").style.marginTop = misMoviles.length > 1 ? "12px" : "";
+  const alDia = (Number(r.saldo)||0) <= 0, mon = esMon(r);
+  $("cNombre").textContent = r.propio ? lindo(r.titular) : lindo(datos.nombre);
+  $("cPlan").textContent = r.plan + (!r.propio ? " · A nombre de " + lindo(r.titular) : "");
+  $("cMovil").textContent = "Móvil " + r.movil;
+  $("cSaldo").textContent = pesos(r.saldo);
+  $("cCuota").textContent = r.cuota ? pesos(r.cuota) : "—";
+  const pagos = r.pagos || [];
+  $("cUlt").textContent = pagos.length ? pagos[0].f : "—";
+  $("cEstado").innerHTML = alDia ? '<span class="estado ok">✓ Al día</span>' : '<span class="estado warn">● Saldo pendiente</span>';
+  $("cAviso").innerHTML = alDia
+    ? '<div class="aviso ok">¡Gracias por estar al día!' + (mon || r.plan === "Sin cargo" ? '' : ' Seguís recibiendo viajes de la central con normalidad.') + '</div>'
+    : avisoDeuda(r);
+
+  const waPedir = p => `https://wa.me/${WA}?text=${encodeURIComponent(`Hola, soy ${lindo(datos.nombre)}, del móvil ${r.movil}. ¿Me pueden mandar el comprobante del pago del ${p.f} (ticket ${p.t})? Gracias.`)}`;
+  $("lPagos").innerHTML = pagos.length ? pagos.map(p =>
+    `<li><div class="row"><div><div class="f">${p.sp?`Semana ${esc(p.sp)} <span class="d" style="display:inline">· ${esc(p.f)}</span>`:esc(p.f)}</div><div class="d">${esc(p.txt||"Pago registrado")}</div>
+       <a class="lnk" style="font-size:13px;display:inline-block;margin-top:6px" href="${waPedir(p)}" target="_blank" rel="noopener">Pedir comprobante</a></div>
+     <span class="i">${p.i ? pesos(p.i) : ""}</span></div></li>`).join("")
+    : '<li class="muted">Todavía no hay pagos registrados en el sistema nuevo.</li>';
+  $("pPend").innerHTML = alDia
+    ? '<div class="aviso ok">No te quedó nada pendiente.</div>'
+    : `<div class="aviso">Te quedó un saldo pendiente de <b>${pesos(r.saldo)}</b>.</div>`;
+
+  const ch = r.choferes || [];
+  $("lChof").innerHTML = ch.length ? ch.map(c => `<li class="f">👤 ${esc(lindo(c))}</li>`).join("") : '<li class="muted">No hay choferes cargados para este móvil.</li>';
+
+  const msg = `Hola, soy ${lindo(datos.nombre)}, del móvil ${r.movil}. Les aviso que hice una transferencia. Adjunto el comprobante.`;
+  $("btnWa").href = `https://wa.me/${WA}?text=${encodeURIComponent(msg)}`;
+  $("cAct").textContent = r.actualizado ? "Datos actualizados el " + new Date(r.actualizado).toLocaleString("es-AR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) + " hs" : "";
+
+  pintarNovedades();
+  $("vLogin").classList.add("hidden");
+  $("vCuenta").classList.remove("hidden");
+  irA("tNov", false);
+  window.scrollTo(0,0);
+}
+
+/* Novedades: se marcan como leídas en este celular */
+function leidas(){ try{ return JSON.parse(store.get("p380_nov_"+sesion.dni)||"[]"); }catch(e){ return []; } }
+function pintarNovedades(){
+  const N = datos.novedades || [], ya = leidas();
+  const nuevas = N.filter(n => !ya.includes(n.id)).length;
+  const et = {alta:"Nueva cuenta", baja:"Baja", aviso:"Aviso"};
+  $("lNov").innerHTML = N.length ? N.map(n => { const nueva = !ya.includes(n.id);
+    return `<li class="nov ${nueva?"unread":""}">
+      <div>${nueva?'<span class="tag nuevo">NUEVO</span>':''}<span class="tag ${esc(n.tipo)}">${et[n.tipo]||"Aviso"}</span><span class="d" style="display:inline">${fechaAr(n.fecha)}</span></div>
+      <div class="f" style="margin-top:6px">${esc(n.titulo)}</div>${n.texto?`<div class="txt">${esc(n.texto)}</div>`:""}
+      ${n.tiene_imagen?`<img class="nov-img" data-img="${esc(n.id)}" alt="Imagen de la novedad">`:""}${videoHtml(n.video)}</li>`; }).join("")
+    : '<li class="muted">No hay novedades por ahora.</li>';
+  cargarImagenes();
+  $("bellN").textContent = nuevas; $("bellN").classList.toggle("hidden", !nuevas);
+  $("tabDot").classList.toggle("hidden", !nuevas);
+  ["cAlerta","fAlerta"].forEach(id => { const al = $(id); al.classList.toggle("hidden", !nuevas);
+    al.innerHTML = `🔔 Tenés ${nuevas} novedad${nuevas>1?"es":""} nueva${nuevas>1?"s":""} de la empresa`; });
+}
+/* Video: YouTube se ve ahí mismo; otro link (Drive) abre aparte */
+function ytId(u){ const m = String(u||"").match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/))([\w-]{11})/); return m ? m[1] : null; }
+function videoHtml(u){ if(!u || !/^https?:\/\//i.test(u)) return ""; const id = ytId(u);
+  if(id) return `<div class="nov-vid"><iframe src="https://www.youtube-nocookie.com/embed/${id}" title="Video" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>`;
+  return `<a class="btn btn-ghost" style="margin-top:10px" href="${esc(u)}" target="_blank" rel="noopener">▶️ Ver video</a>`; }
+/* Imágenes: se piden aparte y se guardan mientras está abierta la app */
+const imgCache = {};
+function cargarImagenes(){ document.querySelectorAll("img[data-img]").forEach(async el => { const id = el.dataset.img;
+  try{ if(!imgCache[id]) imgCache[id] = await rpc("portal_imagen", { p_id: id }); if(imgCache[id] && /^data:image\//.test(imgCache[id])) el.src = imgCache[id]; else el.remove(); }catch(e){ el.remove(); } }); }
+document.addEventListener("click", e => { const im = e.target.closest("img[data-img]"); if(!im || !im.src) return;
+  $("ticket").innerHTML = `<img src="${im.src}" alt="" style="width:100%;border-radius:10px;display:block">`; $("modal").classList.remove("hidden"); });
+function marcarLeidas(){ setTimeout(() => { if(!datos) return; store.set("p380_nov_"+sesion.dni, JSON.stringify((datos.novedades||[]).map(n=>n.id))); pintarNovedades(); }, 4000); }
+
+function irA(id, scroll=true){
+  document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x.dataset.t===id));
+  document.querySelectorAll(".pane").forEach(p => p.classList.toggle("hidden", p.id!==id));
+  if(id==="tNov") marcarLeidas();
+  if(scroll) document.querySelector(".tabs").scrollIntoView({behavior:"smooth"});
+}
+document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => irA(b.dataset.t)));
+const abrirNov = () => { if($("vCuenta").classList.contains("hidden")) mostrar(movilDe(misMoviles[0])); irA("tNov"); };
+$("bell").addEventListener("click", abrirNov);
+$("cAlerta").addEventListener("click", abrirNov);
+$("fAlerta").addEventListener("click", abrirNov);
+
+function comprobante(r, p){
+  const cup = p.cup || [], totCup = cup.reduce((a,c)=>a+c.imp,0);
+  $("ticket").innerHTML = `
+    <div class="t-hd"><b>RADIO TAXI 380MIL</b><div class="d">Comprobante de pago · N° ${esc(p.t)}</div></div>
+    <div class="t-row"><span>Fecha</span><b>${esc(p.f)}</b></div>
+    ${p.sem?`<div class="t-row"><span>Concepto</span><b>${esc(p.sem)}</b></div>`:""}
+    <div class="t-row"><span>Móvil</span><b>${esc(r.movil)}</b></div>
+    <div class="t-row"><span>Titular</span><b>${esc(lindo(r.titular))}</b></div>
+    ${p.m?`<div class="t-row"><span>Medio</span><b>${esc(p.m)}</b></div>`:""}
+    ${cup.map(c=>`<div class="t-row"><span>Cta. cte. ${esc(c.e)} (${c.n})</span><span>${pesos(c.imp)}</span></div>`).join("")}
+    ${totCup && p.i>totCup?`<div class="t-row"><span>Efectivo / transferencia</span><span>${pesos(p.i-totCup)}</span></div>`:""}
+    <div class="t-row t-tot"><span>Total</span><span>${pesos(p.i)}</span></div>
+    <div class="t-ft">Comprobante no válido como factura</div>`;
+  $("modal").classList.remove("hidden");
+}
+document.querySelectorAll(".copy").forEach(b => b.addEventListener("click", async () => {
+  const txt = $(b.dataset.c).textContent;
+  try{ await navigator.clipboard.writeText(txt); b.textContent = "¡Copiado!"; }
+  catch(e){ b.textContent = "Alias: " + txt; }
+  setTimeout(() => b.textContent = "Copiar alias", 1800);
+}));
+$("cerrarModal").addEventListener("click", () => $("modal").classList.add("hidden"));
+$("modal").addEventListener("click", e => { if(e.target.id==="modal") $("modal").classList.add("hidden"); });
+
+function salir(){
+  store.del("p380_ses"); $("iMovil").value=""; $("iDni").value=""; sesion=null; datos=null; misMoviles=[];
+  ["vCuenta","vFlota","bell"].forEach(id => $(id).classList.add("hidden"));
+  $("vLogin").classList.remove("hidden");
+}
+$("btnSalir").addEventListener("click", salir);
+$("btnSalir2").addEventListener("click", salir);
+$("btnVolver").addEventListener("click", mostrarFlota);
+
+/* Instalar como app */
+let instalarEvt = null;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); instalarEvt = e; $("btnInstalar").classList.remove("hidden"); });
+$("btnInstalar").addEventListener("click", async () => { if(!instalarEvt) return; instalarEvt.prompt(); try{ await instalarEvt.userChoice; }catch(e){} instalarEvt=null; $("btnInstalar").classList.add("hidden"); });
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+
+/* Si ya entró antes en este celular, entra directo y trae los datos al día */
+(function(){ try{ const s = JSON.parse(store.get("p380_ses")||"null"); if(s && s.movil && s.dni){ $("vLogin").classList.add("hidden"); ingresar(s.movil, s.dni, true); } }catch(e){} })();
+/* Al volver a abrir la app, refresca */
+document.addEventListener("visibilitychange", () => { if(document.visibilityState==="visible" && sesion){ const k = actual && actual.movil; rpc("portal_ingresar",{p_movil:sesion.movil,p_dni:sesion.dni}).then(d => { if(d && !d.error){ datos=d; if(!$("vCuenta").classList.contains("hidden") && k){ const r = movilDe(k); if(r) mostrar(r); } else if(!$("vFlota").classList.contains("hidden")) mostrarFlota(); } }).catch(()=>{}); } });
+</script>
+</body>
+</html>
