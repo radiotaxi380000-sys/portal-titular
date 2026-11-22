@@ -217,6 +217,8 @@ document.addEventListener("click", async e => { const t = e.target.closest("[dat
   if(msg) marcarAvisado(o.id);
   if(esCior(o)) alert("Listo. La respuesta para el 147 ya está copiada: pegala en el grupo.");
 });
+/* Que no la cierren sin querer: Chrome pregunta antes de cerrar la ventana */
+window.addEventListener("beforeunload", e => { if(clave && !ofi() && !window.__saliendo){ e.preventDefault(); e.returnValue = ""; } });
 /* ---------- Alarma: suena en todas las PC hasta que alguien toca "LO VI" ---------- */
 let actx = null, sonando = false;
 function audio(){ try{ if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} return actx; }
