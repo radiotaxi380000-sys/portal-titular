@@ -157,7 +157,7 @@ let turnosV = []; let rol = st.get("obj_rol")||"operador"; const ofi = () => rol
 let clave = st.get("obj_clave"), yo = st.get("obj_yo"), items = [], filtro = "aut", ultimaN = 0;
 
 async function rpc(fn, body){ const r = await fetch(SB_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:SB_KEY,Authorization:"Bearer "+SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(body)}); if(!r.ok) throw new Error("http "+r.status); return r.json(); }
-const fecha = t => { const d = new Date(t); return d.toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit"})+" "+d.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"}); };
+const fecha = t => { const d = new Date(t); return d.toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit"})+" "+d.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit",hour12:false})+" hs"; };
 const waNum = t => { let d = String(t||"").replace(/\D/g,""); if(d.startsWith("0")) d = d.slice(1); if(d.startsWith("54")) return d; if(d.length===12) d = d.replace(/^(\d{2,4})15/, "$1"); if(d.length===10) return "549"+d; if(d.length===7) return "549341"+d; return d; };
 const STXT = {abierto:"Abierto",encontrado:"Encontrado",entregado:"Entregado",cerrado:"Cerrado"};
 
@@ -482,7 +482,7 @@ function pintarAut(){
   let L = auts.filter(a => ver==="pend" ? a.estado==="pendiente" : ver==="hechos" ? a.estado!=="pendiente" : true);
   if(q) L = L.filter(a => sinTilde([a.asunto,a.texto,a.desde,a.hasta,a.movil,a.cargado_por].join(" ")).includes(q));
   L.sort((x,y) => { const rx = x.estado==="pendiente" && x.recordar_en ? new Date(x.recordar_en) : new Date(x.recibido), ry = y.estado==="pendiente" && y.recordar_en ? new Date(y.recordar_en) : new Date(y.recibido); return ver==="pend" ? rx-ry : new Date(y.recibido)-new Date(x.recibido); });
-  const f = document.activeElement; if(f && f.closest && f.closest("#aLista") && f.tagName==="INPUT") return;
+  const f = document.activeElement; if(f && f.closest && f.closest("#aLista") && /INPUT|SELECT/.test(f.tagName)) return;
   $("aLista").innerHTML = L.length ? L.map(tarjetaAut).join("") : `<div class="vacio">${ver==="pend"?"No hay autorizaciones pendientes. 👍":"No hay nada acá."}</div>`;
 }
 $("aBus").addEventListener("input", pintarAut); $("aVer").addEventListener("change", pintarAut);
@@ -502,21 +502,25 @@ document.addEventListener("click", e => {
   const t = e.target.closest("[data-ahecho],[data-aprog],[data-anota],[data-aanul],[data-apend],[data-aok]"); if(!t) return;
   const ds = t.dataset;
   if(ds.ahecho) aCaja(ds.ahecho, `<div class="g2"><input placeholder="Móvil que hizo el viaje (opcional)" inputmode="numeric" maxlength="6"><button class="b pri" data-aok="hecho|${esc(ds.ahecho)}">Confirmar viaje hecho</button></div>`);
-  if(ds.aprog){ const d = new Date(Date.now()+36e5); const v = `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:00`;
-    aCaja(ds.aprog, `<p class="m" style="margin-bottom:4px">¿Cuándo hay que mandar el auto? A esa hora vuelve a sonar.</p><div class="g2"><input type="datetime-local" value="${v}"><button class="b pri" data-aok="prog|${esc(ds.aprog)}">Avisar a esa hora</button></div>`); }
+  if(ds.aprog){ const ahora = new Date(Date.now()+36e5); const DS = ["dom","lun","mar","mié","jue","vie","sáb"];
+    const dias = [...Array(8)].map((_,i) => { const d = new Date(); d.setDate(d.getDate()+i); const v = `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; return `<option value="${v}">${i===0?"Hoy":i===1?"Mañana":DS[d.getDay()]} ${pad2(d.getDate())}/${pad2(d.getMonth()+1)}</option>`; }).join("");
+    const horas = [...Array(24)].map((_,h) => `<option value="${pad2(h)}"${h===ahora.getHours()?" selected":""}>${pad2(h)}</option>`).join("");
+    const mins = ["00","05","10","15","20","25","30","35","40","45","50","55"].map(m => `<option>${m}</option>`).join("");
+    aCaja(ds.aprog, `<p class="m" style="margin-bottom:4px">¿Cuándo hay que mandar el auto? A esa hora vuelve a sonar.</p><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><select class="pDia" style="width:auto">${dias}</select><select class="pHo" style="width:auto">${horas}</select><b>:</b><select class="pMi" style="width:auto">${mins}</select><span class="m">hs</span><button class="b pri" data-aok="prog|${esc(ds.aprog)}">Avisar a esa hora</button></div>`); }
   if(ds.anota) aCaja(ds.anota, `<div class="g2"><input placeholder="Escribí la nota" maxlength="300"><button class="b pri" data-aok="nota|${esc(ds.anota)}">Guardar nota</button></div>`);
   if(ds.aanul) aCaja(ds.aanul, `<div class="g2"><input placeholder="¿Por qué se anula? (ej.: el centro canceló)" maxlength="300"><button class="b pri" data-aok="anul|${esc(ds.aanul)}">Anular</button></div>`);
   if(ds.apend) aAccion(ds.apend, {p_estado:"pendiente", p_nota:"Volvió a pendiente"});
   if(ds.aok){ const i = ds.aok.indexOf("|"), que = ds.aok.slice(0,i), id = ds.aok.slice(i+1); const v = (t.parentElement.querySelector("input")||{}).value||""; t.disabled = true;
     if(que==="hecho") aAccion(id, {p_estado:"hecho", p_movil:v, p_quitar_recordar:true, p_nota:"Viaje hecho"+(v?" por el móvil "+v.replace(/\D/g,""):"")});
-    if(que==="prog"){ if(!v){ t.disabled=false; return; } const d = new Date(v); aAccion(id, {p_recordar:d.toISOString(), p_nota:"Programado: avisar el "+fecha(d)}); }
+    if(que==="prog"){ const c = t.parentElement; const d = new Date(c.querySelector(".pDia").value+"T"+c.querySelector(".pHo").value+":"+c.querySelector(".pMi").value+":00");
+      if(isNaN(d)){ t.disabled=false; return; } aAccion(id, {p_recordar:d.toISOString(), p_nota:"Programado: avisar el "+fecha(d)}); }
     if(que==="nota"){ if(!v.trim()){ t.disabled=false; return; } aAccion(id, {p_nota:v.trim()}); }
     if(que==="anul") aAccion(id, {p_estado:"anulado", p_quitar_recordar:true, p_nota:"Anulado"+(v.trim()?": "+v.trim():"")});
   }
 });
 document.addEventListener("keydown", e => { if(e.key!=="Enter") return; const b = e.target.closest && e.target.closest("[id^='ain-']"); if(b){ const k = b.querySelector("[data-aok]"); if(k) k.click(); } });
 if(clave && yo){ $("lNom").value = yo; rpc("objetos_listar",{p_clave:clave}).then(d => { if(d.error) return salir(); turnosV = d.turnos||turnosV; if(d.rol){ rol=d.rol; st.set("obj_rol",rol); } items = d.items||[]; entrar(); }).catch(()=>{}); }
-setInterval(() => { const f = document.activeElement; if(f && f.closest && f.closest("#lista,#vCargar,#vAyuda,#mVi,#aLista,#aForm") && f.tagName==="INPUT") return; if(clave && !$("vPanel").classList.contains("hidden")) cargar(); }, 15000);
+setInterval(() => { const f = document.activeElement; if(f && f.closest && f.closest("#lista,#vCargar,#vAyuda,#mVi,#aLista,#aForm") && /INPUT|SELECT/.test(f.tagName)) return; if(clave && !$("vPanel").classList.contains("hidden")) cargar(); }, 15000);
 </script>
 </body>
 </html>
