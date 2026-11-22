@@ -85,11 +85,7 @@
         </div>
       </div>
       <div class="q">
-        <h2>3. ¿Algún viaje o chofer para destacar o reclamar? <span class="op">(opcional)</span></h2>
-        <textarea id="com" maxlength="1500" placeholder="Cuéntennos lo que quieran: lo bueno y lo que tenemos que mejorar."></textarea>
-      </div>
-      <div class="q">
-        <h2>4. ¿Les interesaría tener su propia app para pedir taxis?</h2>
+        <h2>3. ¿Les interesaría tener su propia app para pedir taxis?</h2>
         <div class="app">Con las direcciones de su empresa guardadas, los viajes a su nombre y el seguimiento del auto en el mapa.</div>
         <div class="opciones">
           <label><input type="radio" name="app" value="Sí"> Sí, nos interesa</label>
@@ -98,10 +94,14 @@
         </div>
       </div>
       <div class="q">
-        <h2>5. ¿Quién pide los taxis en su empresa? <span class="op">(opcional)</span></h2>
+        <h2>4. ¿Quién pide los taxis en su empresa? <span class="op">(opcional)</span></h2>
         <p class="nota">Déjennos un nombre y un teléfono para estar en contacto.</p>
         <input type="text" id="nom" maxlength="120" placeholder="Nombre y apellido" autocomplete="name">
         <input type="tel" id="tel" maxlength="40" placeholder="Teléfono o WhatsApp" autocomplete="tel">
+      </div>
+      <div class="q">
+        <h2>5. ¿Qué sugerencias nos dejarían para mejorar el servicio? <span class="op">(opcional)</span></h2>
+        <textarea id="com" maxlength="1500" placeholder="Todo nos sirve: lo que les gusta y lo que podríamos hacer mejor."></textarea>
       </div>
       <button class="btn" type="submit" id="btn">Enviar respuestas</button>
       <p class="error" id="err"></p>
@@ -162,7 +162,7 @@ $("f").addEventListener("submit", async e => {
   const pun = (document.querySelector('input[name="pun"]:checked')||{}).value || "";
   const app = (document.querySelector('input[name="app"]:checked')||{}).value || "";
   if(!estrellas || !pun || !app){
-    $("err").textContent = "Por favor respondan las preguntas 1, 2 y 4."; $("err").style.display = "block"; return;
+    $("err").textContent = "Por favor respondan las preguntas 1, 2 y 3."; $("err").style.display = "block"; return;
   }
   $("err").style.display = "none"; $("btn").disabled = true; $("btn").textContent = "Enviando…";
   try{
