@@ -123,7 +123,7 @@ let clave = st.get("obj_clave"), yo = st.get("obj_yo"), items = [], filtro = "bu
 
 async function rpc(fn, body){ const r = await fetch(SB_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:SB_KEY,Authorization:"Bearer "+SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(body)}); if(!r.ok) throw new Error("http "+r.status); return r.json(); }
 const fecha = t => { const d = new Date(t); return d.toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit"})+" "+d.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"}); };
-const waNum = t => { let d = String(t||"").replace(/\D/g,""); if(d.startsWith("0")) d = d.slice(1); if(d.startsWith("54")) return d; d = d.replace(/^(\d{2,4})15/, "$1"); if(d.length===10) return "549"+d; if(d.length===7) return "549341"+d; return d; };
+const waNum = t => { let d = String(t||"").replace(/\D/g,""); if(d.startsWith("0")) d = d.slice(1); if(d.startsWith("54")) return d; if(d.length===12) d = d.replace(/^(\d{2,4})15/, "$1"); if(d.length===10) return "549"+d; if(d.length===7) return "549341"+d; return d; };
 const STXT = {abierto:"Abierto",encontrado:"Encontrado",entregado:"Entregado",cerrado:"Cerrado"};
 
 async function cargar(){
@@ -248,13 +248,16 @@ document.addEventListener("click", async e => { const b = e.target.closest("[dat
     if(!o.movil){
       const ra = (String(o.descripcion||"").match(/R\.?\s*A\.?:?\s*(\d+)/i)||[,""])[1];
       if(ra){ try{ const r = await rpc("objetos_movil_por_ra",{p_clave:clave,p_ra:ra}); o.movil = (r && r.movil) || ""; }catch(err){} }
-      if(!o.movil){ const m = prompt("¿De qué móvil es?"+(ra?" (R.A. "+ra+")":"")+"\nEscribí el número de móvil:"); o.movil = String(m||"").replace(/\D/g,""); }
+      while(!o.movil){ const m = prompt("¿De qué móvil es?"+(ra?" (R.A. "+ra+")":"")+"\nEscribí el NÚMERO DE MÓVIL (no el teléfono):"); if(m===null) break;
+        const d0 = String(m).replace(/\D/g,""); if(d0.length>5){ alert("Eso parece un teléfono. Acá va el número de móvil (ej. 400). El teléfono te lo pido después."); continue; } o.movil = d0; }
       if(!o.movil){ b.disabled = false; b.textContent = txt0; return; }
       rpc("objetos_set_movil",{p_clave:clave,p_id:o.id,p_movil:o.movil}).catch(()=>{});
     }
     const d = await rpc("objetos_titular",{p_clave:clave,p_movil:o.movil});
     const msg = msgTitular(o, d && d.titular);
-    const tel = d && d.tel ? waNum(d.tel) : "";
+    let tel = d && d.tel ? waNum(d.tel) : "";
+    if(tel.length < 12){ const t = prompt("No tenemos el teléfono del titular del móvil "+o.movil+".\nSi lo sabés, escribilo (queda guardado para la próxima). Si no, dejalo vacío:");
+      if(t && waNum(t).length >= 12){ tel = waNum(t); rpc("objetos_guardar_tel",{p_clave:clave,p_movil:o.movil,p_tel:t,p_quien:yo}).catch(()=>{}); } }
     if(tel.length >= 12){ window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`,"_blank","noopener"); b.textContent = "✓ WhatsApp abierto";
       rpc("objetos_accion",{p_clave:clave,p_id:o.id,p_estado:null,p_vinculo:null,p_nota:"Se avisó al titular del móvil "+o.movil+" por WhatsApp",p_quien:yo}).then(cargar).catch(()=>{}); }
     else { try{ await navigator.clipboard.writeText(msg); }catch(err){}
