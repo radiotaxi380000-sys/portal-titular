@@ -161,10 +161,8 @@ function tarjeta(o){
   const notas = o.notas||[]; if(notas.length) h += `<div class="notas">${notas.map(n=>`💬 ${esc(n.t)} <span class="m">— ${esc(n.quien)}, ${fecha(n.at)}</span>`).join("<br>")}</div>`;
   h += `<div class="acc">`;
   if(o.tipo==="perdido" && esCior(o) && o.estado!=="cerrado"){
-    const ra = (String(o.descripcion||"").match(/R\.A\. (\d+)/)||[,""])[1];
     const ok = o.estado==="encontrado"||o.estado==="entregado";
-    const msg = ok ? `Hola, les escribimos de Radio Taxi 380mil por el reclamo${ra?" del R.A. "+ra:""}${o.cuando?" ("+o.cuando+")":""}: apareció el objeto (${o.objeto}). El pasajero puede retirarlo en Pueyrredón 382, Rosario, las 24 horas, con su documento. Gracias.`
-                   : `Hola, les escribimos de Radio Taxi 380mil por el reclamo${ra?" del R.A. "+ra:""}${o.cuando?" ("+o.cuando+")":""} (${o.objeto}): lo recibimos y ya lo estamos buscando con el chofer. Les avisamos cualquier novedad.`;
+    const msg = ciMsg(o, ok);
     h += `<div class="acc"><button class="b wa" data-copy="${encodeURIComponent(msg)}">📋 Copiar respuesta para el grupo</button>${CIOR.map(c=>`<a class="b" target="_blank" rel="noopener" href="https://wa.me/${c.w}?text=${encodeURIComponent(msg)}">Por privado (${c.n.slice(-9)})</a>`).join("")}</div>`;
   }
   const tel = o.tipo==="perdido" && !esCior(o) ? o.contacto_tel : "";
@@ -212,6 +210,13 @@ document.addEventListener("click", e => {
 const CIOR = [{n:"+54 9 341 395-6761", w:"5493413956761"}, {n:"+54 9 341 636-2475", w:"5493416362475"}];
 const esCior = o => /^CIOR/i.test(o.contacto_nombre||"");
 let ci = null;
+function ciMsg(o, ok){
+  const ra = (String(o.descripcion||"").match(/R\.A\. (\d+)/)||[,""])[1];
+  const ref = `R.A. ${ra||"—"}${o.cuando?" · "+o.cuando:""} · ${o.objeto}`;
+  return ok
+    ? `✅ *380mil – Objeto encontrado*\n${ref}\nEl pasajero puede retirarlo en *Pueyrredón 382*, las 24 horas, con su DNI. Reclamo N° ${o.nro}.`
+    : `📥 *380mil – Reclamo recibido*\n${ref}\nYa lo estamos buscando con el chofer. Reclamo N° ${o.nro}. Les avisamos apenas tengamos novedades.`;
+}
 function ciLeer(t){
   const get = k => { const m = t.match(new RegExp("^\\s*"+k+"\\s*:\\s*(.+)$","im")); return m ? m[1].trim().replace(/\.$/,"") : ""; };
   const ra = (get("RA").match(/\d+/)||[""])[0];
@@ -231,7 +236,10 @@ $("ciBtn").addEventListener("click", async () => {
   if(!ci || !ci.objeto) return;
   try{ const d = await rpc("objetos_cargar",{p_clave:clave,p_tipo:"perdido",p_objeto:ci.objeto,p_desc:"Reclamo del CIOR 147"+(ci.ra?" · R.A. "+ci.ra:""),p_cuando:[ci.dia,ci.hora].filter(Boolean).join(" "),
       p_recorrido:[ci.origen&&"Desde "+ci.origen, ci.destino&&"hasta "+ci.destino].filter(Boolean).join(" "),p_movil:ci.movil,p_nombre:"CIOR 147",p_tel:CIOR[0].n,p_quien:yo});
-    if(d.ok){ $("ciMsg").textContent = "Guardado con el número #"+d.nro+". Ya lo ven todos en \"Pasajeros buscando\"."; $("ciTxt").value=""; $("ciPrev").innerHTML=""; $("ciBtn").classList.add("hidden"); ci=null; cargar(); }
+    if(d.ok){ const resp = ciMsg({descripcion:"R.A. "+ci.ra, cuando:[ci.dia,ci.hora].filter(Boolean).join(" "), objeto:ci.objeto, nro:d.nro}, false);
+      let copiado = false; try{ await navigator.clipboard.writeText(resp); copiado = true; }catch(e){}
+      $("ciMsg").innerHTML = "Guardado con el número <b>#"+d.nro+"</b>. " + (copiado ? "<b>La confirmación ya está copiada: pegala ahora en el grupo del 147.</b>" : "Tocá «Copiar respuesta para el grupo» en el reclamo.");
+      $("ciTxt").value=""; $("ciPrev").innerHTML=""; $("ciBtn").classList.add("hidden"); ci=null; cargar(); }
     else $("ciMsg").textContent = "No se pudo guardar."; }
   catch(e){ $("ciMsg").textContent = "Sin conexión."; }
 });
