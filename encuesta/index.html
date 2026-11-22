@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Encuesta de servicio · Radio Taxi 380mil</title>
+<meta name="theme-color" content="#0b3d91">
+<meta name="robots" content="noindex">
+<link rel="icon" href="../icono-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{--azul:#0b3d91;--azul2:#1256c4;--celeste-claro:#e8f4ff;--gris:#5b6b82;--borde:#dbe6f5;--fondo:#f3f7fc;--ok:#1a8f5a;--ok-bg:#e6f6ee;--rojo:#c0392b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Inter,system-ui,sans-serif;background:var(--fondo);color:#13233d;min-height:100vh}
+  .wrap{max-width:560px;margin:0 auto;padding:0 16px 48px}
+  .hero{margin:0 -16px;padding:26px 24px 84px;color:#fff;text-align:center;position:relative;overflow:hidden;
+    background:radial-gradient(120% 80% at 50% 0%,#2f7de0 0%,#1256c4 35%,#0b3d91 75%,#082c6b 100%);border-radius:0 0 34px 34px}
+  .damero{position:absolute;left:0;right:0;top:0;height:14px;opacity:.9;background:repeating-conic-gradient(#fff 0 25%,transparent 0 50%) 0 0/14px 14px}
+  .hero img{width:80px;height:80px;border-radius:50%;background:#fff;margin-top:14px;box-shadow:0 0 0 6px rgba(255,255,255,.18),0 10px 26px rgba(0,0,0,.25)}
+  .marca{margin-top:12px;font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
+  .hero h1{margin-top:4px;font-size:28px;font-weight:900;letter-spacing:-.02em;line-height:1.1}
+  .hero p{margin-top:8px;font-size:15px;opacity:.92;line-height:1.45}
+  .card{background:#fff;border:1px solid var(--borde);border-radius:18px;padding:22px 20px;margin-top:14px;box-shadow:0 2px 10px rgba(11,61,145,.05)}
+  .card.first{margin-top:-60px;position:relative;z-index:2;box-shadow:0 18px 40px rgba(11,61,145,.14)}
+  .q{padding:18px 0;border-bottom:1px solid var(--borde)}
+  .q:first-child{padding-top:0}
+  .q:last-of-type{border-bottom:none}
+  .q h2{font-size:16px;font-weight:700;line-height:1.35}
+  .q .op{font-weight:500;color:var(--gris);font-size:13px}
+  .estrellas{display:flex;gap:6px;margin-top:12px}
+  .estrellas button{flex:1;height:52px;border-radius:12px;border:1.5px solid var(--borde);background:#fbfdff;font-size:26px;cursor:pointer;color:#c7d2e3;transition:transform .1s}
+  .estrellas button.on{color:#f5b301;border-color:#f5c94d;background:#fff8e1}
+  .estrellas button:active{transform:scale(.94)}
+  .nota{font-size:13px;color:var(--gris);margin-top:6px;min-height:18px}
+  .opciones{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .opciones label{display:flex;align-items:center;gap:10px;padding:13px 14px;border:1.5px solid var(--borde);border-radius:12px;cursor:pointer;font-weight:500;background:#fbfdff}
+  .opciones input{width:20px;height:20px;accent-color:var(--azul)}
+  .opciones label:has(input:checked){border-color:var(--azul2);background:var(--celeste-claro)}
+  textarea,input[type=text],input[type=tel]{width:100%;margin-top:10px;padding:13px;border:1.5px solid var(--borde);border-radius:12px;font:inherit;font-size:16px;background:#fbfdff;outline:none}
+  textarea{min-height:90px;resize:vertical}
+  textarea:focus,input:focus{border-color:var(--azul2);background:#fff}
+  .app{margin-top:10px;padding:12px 14px;border-radius:12px;background:var(--celeste-claro);font-size:14px;line-height:1.45;color:#24385a}
+  .btn{display:block;width:100%;padding:16px;border:none;border-radius:12px;font:inherit;font-weight:800;font-size:17px;cursor:pointer;margin-top:18px;color:#fff;background:linear-gradient(135deg,#0b3d91,#1f6fe0);box-shadow:0 8px 20px rgba(18,86,196,.3)}
+  .btn:disabled{opacity:.6}
+  .error{color:var(--rojo);font-size:14px;margin-top:10px;display:none}
+  .gracias{text-align:center;padding:10px 0}
+  .gracias .ic{width:72px;height:72px;border-radius:50%;background:var(--ok-bg);color:var(--ok);display:grid;place-items:center;font-size:36px;margin:0 auto 14px}
+  .gracias h2{font-size:22px}
+  .gracias p{color:var(--gris);margin-top:8px;line-height:1.5}
+  .contacto{margin-top:16px;font-size:14px;color:var(--gris);text-align:center;line-height:1.6}
+  .contacto a{color:var(--azul);font-weight:700;text-decoration:none}
+  .hidden{display:none!important}
+  footer{text-align:center;color:var(--gris);font-size:12px;margin-top:22px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="damero" aria-hidden="true"></div>
+    <img src="../icono-192.png" alt="Radio Taxi 380mil">
+    <div class="marca">Radio Taxi 380mil</div>
+    <h1>¿Cómo los estamos atendiendo?</h1>
+    <p>Queremos seguir mejorando el servicio para su empresa. Son 5 preguntas y lleva un minuto.</p>
+  </div>
+
+  <div class="card first" id="cForm">
+    <form id="f" novalidate>
+      <div class="q">
+        <h2>1. ¿Qué tan conformes están con nuestro servicio?</h2>
+        <div class="estrellas" id="est" role="radiogroup" aria-label="Calificación de 1 a 5">
+          <button type="button" data-v="1" aria-label="1 estrella">★</button>
+          <button type="button" data-v="2" aria-label="2 estrellas">★</button>
+          <button type="button" data-v="3" aria-label="3 estrellas">★</button>
+          <button type="button" data-v="4" aria-label="4 estrellas">★</button>
+          <button type="button" data-v="5" aria-label="5 estrellas">★</button>
+        </div>
+        <div class="nota" id="estTxt"></div>
+      </div>
+      <div class="q">
+        <h2>2. ¿Los autos llegan a tiempo?</h2>
+        <div class="opciones">
+          <label><input type="radio" name="pun" value="Siempre"> Siempre</label>
+          <label><input type="radio" name="pun" value="Casi siempre"> Casi siempre</label>
+          <label><input type="radio" name="pun" value="A veces no"> A veces no</label>
+        </div>
+      </div>
+      <div class="q">
+        <h2>3. ¿Algún viaje o chofer para destacar o reclamar? <span class="op">(opcional)</span></h2>
+        <textarea id="com" maxlength="1500" placeholder="Cuéntennos lo que quieran: lo bueno y lo que tenemos que mejorar."></textarea>
+      </div>
+      <div class="q">
+        <h2>4. ¿Les interesaría tener su propia app para pedir taxis?</h2>
+        <div class="app">Con las direcciones de su empresa guardadas, los viajes a su nombre y el seguimiento del auto en el mapa.</div>
+        <div class="opciones">
+          <label><input type="radio" name="app" value="Sí"> Sí, nos interesa</label>
+          <label><input type="radio" name="app" value="Tal vez"> Tal vez, queremos saber más</label>
+          <label><input type="radio" name="app" value="No"> No por ahora</label>
+        </div>
+      </div>
+      <div class="q">
+        <h2>5. ¿Quién pide los taxis en su empresa? <span class="op">(opcional)</span></h2>
+        <p class="nota">Déjennos un nombre y un teléfono para estar en contacto.</p>
+        <input type="text" id="nom" maxlength="120" placeholder="Nombre y apellido" autocomplete="name">
+        <input type="tel" id="tel" maxlength="40" placeholder="Teléfono o WhatsApp" autocomplete="tel">
+      </div>
+      <button class="btn" type="submit" id="btn">Enviar respuestas</button>
+      <p class="error" id="err"></p>
+    </form>
+  </div>
+
+  <div class="card first hidden" id="cGracias">
+    <div class="gracias">
+      <div class="ic">✓</div>
+      <h2>¡Muchas gracias!</h2>
+      <p id="gTxt">Recibimos sus respuestas. Las vamos a leer una por una para seguir mejorando.</p>
+    </div>
+  </div>
+
+  <div class="card first hidden" id="cError">
+    <div class="gracias">
+      <h2>No encontramos esta encuesta</h2>
+      <p>Revisen que el link esté completo, tal como llegó en el mail.</p>
+    </div>
+  </div>
+
+  <div class="contacto">¿Necesitan hablar con nosotros?<br>Central <a href="tel:+543414380000">341 4-380.000</a> · Administración <a href="https://wa.me/5493413138944" target="_blank" rel="noopener">WhatsApp 341 313-8944</a></div>
+  <footer>Radio Taxi 380mil · Rosario · Desde 1980</footer>
+</div>
+
+<script>
+const SB_URL = "https://muemdhlrsjlmxvfraljp.supabase.co";
+const SB_KEY = "sb_publishable_WMpo3vPv2NDR5Ms_QEDHyQ_ATzkn46l";
+const $ = id => document.getElementById(id);
+const token = (new URLSearchParams(location.search).get("c") || "").trim();
+let estrellas = 0;
+const TXT = {1:"Muy disconformes",2:"Disconformes",3:"Más o menos",4:"Conformes",5:"¡Muy conformes!"};
+
+async function rpc(fn, body){
+  const r = await fetch(SB_URL + "/rest/v1/rpc/" + fn, { method:"POST", headers:{ apikey:SB_KEY, Authorization:"Bearer "+SB_KEY, "Content-Type":"application/json" }, body: JSON.stringify(body) });
+  if(!r.ok) throw new Error("http " + r.status);
+  return r.json();
+}
+function mostrar(id){ ["cForm","cGracias","cError"].forEach(x => $(x).classList.toggle("hidden", x !== id)); }
+
+document.querySelectorAll("#est button").forEach(b => b.addEventListener("click", () => {
+  estrellas = +b.dataset.v;
+  document.querySelectorAll("#est button").forEach(x => x.classList.toggle("on", +x.dataset.v <= estrellas));
+  $("estTxt").textContent = TXT[estrellas];
+}));
+
+(async () => {
+  if(!token){ mostrar("cError"); return; }
+  try{
+    const d = await rpc("encuesta_info", { p_token: token });
+    if(d.error){ mostrar("cError"); return; }
+    if(d.respondida){ $("gTxt").textContent = "Ya recibimos sus respuestas. ¡Gracias por tomarse el tiempo!"; mostrar("cGracias"); }
+  }catch(e){ /* sin conexión: igual se puede intentar enviar */ }
+})();
+
+$("f").addEventListener("submit", async e => {
+  e.preventDefault();
+  const pun = (document.querySelector('input[name="pun"]:checked')||{}).value || "";
+  const app = (document.querySelector('input[name="app"]:checked')||{}).value || "";
+  if(!estrellas || !pun || !app){
+    $("err").textContent = "Por favor respondan las preguntas 1, 2 y 4."; $("err").style.display = "block"; return;
+  }
+  $("err").style.display = "none"; $("btn").disabled = true; $("btn").textContent = "Enviando…";
+  try{
+    const d = await rpc("encuesta_responder", { p_token: token, p_estrellas: estrellas, p_puntualidad: pun, p_comentario: $("com").value.trim(), p_app: app, p_nombre: $("nom").value.trim(), p_tel: $("tel").value.trim() });
+    if(d && d.ok){ mostrar("cGracias"); window.scrollTo(0,0); return; }
+    if(d && d.error === "no_encontrado"){ mostrar("cError"); return; }
+    throw new Error("x");
+  }catch(err){
+    $("err").textContent = "No se pudo enviar. Revisen la conexión y prueben de nuevo."; $("err").style.display = "block";
+  }finally{ $("btn").disabled = false; $("btn").textContent = "Enviar respuestas"; }
+});
+</script>
+</body>
+</html>
