@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Objetos perdidos · Radio Taxi 380mil</title>
+<title>Central · Radio Taxi 380mil</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#0b3d91">
 <link rel="icon" href="../icono-192.png">
@@ -57,7 +57,7 @@
 </style>
 </head>
 <body>
-<header><div class="hd"><img src="../icono-192.png" alt=""><h1><small>RADIO TAXI 380MIL</small>Objetos perdidos</h1><span class="yo" id="yo"></span></div></header>
+<header><div class="hd"><img src="../icono-192.png" alt=""><h1><small>RADIO TAXI 380MIL · CENTRAL</small>Autorizados y objetos perdidos</h1><span class="yo" id="yo"></span></div></header>
 <main>
   <div class="card login" id="vLogin">
     <h2 style="font-size:18px">Ingresar</h2>
@@ -74,12 +74,30 @@
     <div id="avisar" class="hidden" style="background:#1e8449;color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px"></div>
     <label id="waLbl" style="display:flex;gap:8px;align-items:center;font-size:13px;margin:0 0 10px;color:#555"><input type="checkbox" id="esWa" style="width:auto"> Esta PC tiene el WhatsApp de la oficina (acá suenan los avisos para contestar)</label>
     <div class="tabs" id="tabs">
-      <button data-f="buscando" class="on">Pasajeros buscando<span class="n" id="n1"></span></button>
+      <button data-f="aut" class="on">🚕 Autorizados<span class="n" id="n0"></span></button>
+      <button data-f="buscando">Pasajeros buscando<span class="n" id="n1"></span></button>
       <button data-f="guardados">Objetos guardados<span class="n" id="n2"></span></button>
       <button data-f="resueltos">Resueltos<span class="n" id="n3"></span></button>
       <button data-f="cior" id="tabCior">📋 Pegar reclamo del 147</button>
-      <button data-f="cargar">+ Cargar a mano</button>
+      <button data-f="cargar">+ Cargar objeto</button>
       <button data-f="ayuda">Links</button>
+    </div>
+    <div id="vAut" class="hidden">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <input id="aBus" placeholder="Buscar por paciente, centro o dirección" style="flex:1;min-width:220px">
+        <select id="aVer" style="width:auto"><option value="pend">Pendientes</option><option value="todos">Todos (7 días)</option><option value="hechos">Hechos</option></select>
+        <button class="b pri" id="aNueva">+ Cargar a mano</button>
+      </div>
+      <div class="card hidden" id="aForm" style="margin-bottom:12px">
+        <h2 style="font-size:17px">Autorización cargada a mano</h2>
+        <p class="m">Para las que llegan por WhatsApp, teléfono o papel.</p>
+        <div class="g2"><label>Paciente<input id="afPac" maxlength="120"></label><label>Centro de salud<input id="afCen" maxlength="120"></label></div>
+        <div class="g2"><label>Desde<input id="afDes" maxlength="200"></label><label>Hasta<input id="afHas" maxlength="200"></label></div>
+        <label>Detalle (día, hora, quién autoriza…)<input id="afDet" maxlength="300"></label>
+        <label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="afFue" style="width:auto"> Fuera de horario</label>
+        <button class="b pri" style="margin-top:12px;padding:12px 18px" id="afBtn">Guardar</button> <span class="m" id="afMsg"></span>
+      </div>
+      <div class="grid" id="aLista"></div>
     </div>
     <div class="grid" id="lista"></div>
 
@@ -136,14 +154,17 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const st = { get(k){ try{ return localStorage.getItem(k)||""; }catch(e){ return ""; } }, set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} } };
 let turnosV = []; let rol = st.get("obj_rol")||"operador"; const ofi = () => rol==="oficina";
-let clave = st.get("obj_clave"), yo = st.get("obj_yo"), items = [], filtro = "buscando", ultimaN = 0;
+let clave = st.get("obj_clave"), yo = st.get("obj_yo"), items = [], filtro = "aut", ultimaN = 0;
 
 async function rpc(fn, body){ const r = await fetch(SB_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:SB_KEY,Authorization:"Bearer "+SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(body)}); if(!r.ok) throw new Error("http "+r.status); return r.json(); }
 const fecha = t => { const d = new Date(t); return d.toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit"})+" "+d.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"}); };
 const waNum = t => { let d = String(t||"").replace(/\D/g,""); if(d.startsWith("0")) d = d.slice(1); if(d.startsWith("54")) return d; if(d.length===12) d = d.replace(/^(\d{2,4})15/, "$1"); if(d.length===10) return "549"+d; if(d.length===7) return "549341"+d; return d; };
 const STXT = {abierto:"Abierto",encontrado:"Encontrado",entregado:"Entregado",cerrado:"Cerrado"};
 
+let auts = [];
+async function cargarAut(){ try{ const d = await rpc("autoriz_listar",{p_clave:clave}); if(d && d.items){ auts = d.items; } }catch(e){} }
 async function cargar(){
+  await cargarAut();
   try{
     const d = await rpc("objetos_listar",{p_clave:clave});
     if(d.error){ if(d.error==="clave"){ salir("La clave no es correcta."); } return; }
@@ -157,7 +178,7 @@ $("lBtn").addEventListener("click", async () => {
   try{ const d = await rpc("objetos_listar",{p_clave:c}); if(d.error){ $("lErr").textContent = d.error==="limite"?"Demasiados intentos. Esperá unos minutos.":"Clave incorrecta."; return; }
     clave=c; yo=n; st.set("obj_clave",c); st.set("obj_yo",n); turnosV = d.turnos||turnosV; if(d.rol){ rol=d.rol; st.set("obj_rol",rol); } items=d.items||[]; entrar(); }catch(e){ $("lErr").textContent = "Sin conexión."; }
 });
-function entrar(){ $("vLogin").classList.add("hidden"); $("vPanel").classList.remove("hidden"); $("yo").innerHTML = "👤 "+esc(yo)+' · <a href="#" id="sal" style="color:#fff">salir</a>'; $("sal").onclick = e => { e.preventDefault(); salir(); }; pintar(); }
+function entrar(){ cargarAut().then(()=>pintar()); $("vLogin").classList.add("hidden"); $("vPanel").classList.remove("hidden"); $("yo").innerHTML = "👤 "+esc(yo)+' · <a href="#" id="sal" style="color:#fff">salir</a>'; $("sal").onclick = e => { e.preventDefault(); salir(); }; pintar(); }
 
 function coincide(p, e){ // sugerencia: un encontrado parecido a un perdido
   if(e.estado!=="abierto"||e.tipo!=="encontrado") return false;
@@ -254,23 +275,32 @@ function turnoActual(){ const n = new Date(), t = new Date(n); const h = n.getHo
 const vencidos = () => items.filter(o => o.estado==="abierto" && o.recordar_en && new Date(o.recordar_en) <= new Date());
 function turnoPend(){ if(ofi()) return null; const t = turnoActual(); if(new Date() < t.desde) return null;
   if(turnosV.some(x => x.turno===t.key)) return null;
-  const L = items.filter(o => o.estado==="abierto" && new Date(o.creado) < t.desde); return L.length ? {t, L} : null; }
+  const L = items.filter(o => o.estado==="abierto" && new Date(o.creado) < t.desde);
+  const A = auts.filter(a => a.estado==="pendiente" && new Date(a.recibido) < t.desde && new Date(a.recibido) > new Date(Date.now()-2*864e5));
+  return (L.length || A.length) ? {t, L, A} : null; }
 function alarma(){
   const nuevos = items.filter(o => !o.visto_en && o.estado==="abierto");
   const venc = ofi() ? [] : vencidos(), tp = turnoPend();
-  sonando = nuevos.length > 0 || venc.length > 0 || !!tp;
+  const aN = ofi() ? [] : auts.filter(a => !a.visto_en && a.estado==="pendiente");
+  const aR = ofi() ? [] : auts.filter(a => a.estado==="pendiente" && a.recordar_en && new Date(a.recordar_en) <= new Date());
+  sonando = nuevos.length > 0 || venc.length > 0 || !!tp || aN.length > 0 || aR.length > 0;
   const box = $("alarma"); box.classList.toggle("hidden", !sonando);
   const fila = (izq, btn) => `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0">${izq}${btn}</div>`;
-  let h = nuevos.map(o => fila(`<div><b style="font-size:17px">🔔 ${o.tipo==="perdido"?"Pasajero busca":"Chofer encontró"}: ${esc(o.objeto)}</b><br><span style="opacity:.9;font-size:13px">#${o.nro} · ${esc(o.origen)}${o.movil?" · Móvil "+esc(o.movil):""} · ${fecha(o.creado)}</span></div>`, `<button class="b" data-visto="${o.id}">LO VI</button>`)).join("");
+  let h = aN.map(a => fila(`<div><b style="font-size:17px">🚕 Nueva autorización: ${esc(a.asunto||a.texto||"")}</b><br><span style="opacity:.9;font-size:13px">${a.desde?"De "+esc(a.desde)+" a "+esc(a.hasta||"?")+" · ":""}${a.fuera?"FUERA DE HORARIO · ":""}${fecha(a.recibido)}</span></div>`, `<button class="b" data-avisto="${esc(a.id)}">LO VI</button>`)).join("");
+  h += aR.map(a => fila(`<div><b style="font-size:17px">📅 Es la hora del viaje autorizado: ${esc(a.asunto||"")}</b><br><span style="opacity:.9;font-size:13px">${a.desde?"De "+esc(a.desde)+" a "+esc(a.hasta||"?")+" · ":""}Lo programó ${esc(a.recordar_por||"")}</span></div>`, `<button class="b" data-arecok="${esc(a.id)}">YA LO ATENDÍ</button>`)).join("");
+  h += nuevos.map(o => fila(`<div><b style="font-size:17px">🔔 ${o.tipo==="perdido"?"Pasajero busca":"Chofer encontró"}: ${esc(o.objeto)}</b><br><span style="opacity:.9;font-size:13px">#${o.nro} · ${esc(o.origen)}${o.movil?" · Móvil "+esc(o.movil):""} · ${fecha(o.creado)}</span></div>`, `<button class="b" data-visto="${o.id}">LO VI</button>`)).join("");
   h += venc.map(o => fila(`<div><b style="font-size:17px">⏰ Volver a preguntar${o.movil?" al móvil "+esc(o.movil):""}: ${esc(o.objeto)}</b><br><span style="opacity:.9;font-size:13px">#${o.nro} · Recordatorio que dejó ${esc(o.recordar_por||"")}</span></div>`, `<button class="b" data-recok="${o.id}">YA PREGUNTÉ</button>`)).join("");
-  if(tp) h += fila(`<div><b style="font-size:17px">🔄 Cambio de turno ${tp.t.nombre}: ${tp.L.length} ${tp.L.length===1?"reclamo sin resolver":"reclamos sin resolver"}</b><br><span style="opacity:.9;font-size:13px">${tp.L.slice(0,5).map(o => "#"+o.nro+" "+esc(o.objeto)+(o.movil?" (móvil "+esc(o.movil)+")":"")).join(" · ")}${tp.L.length>5?" …":""}</span></div>`, `<button class="b" data-turno="${tp.t.key}|${tp.L.length}">ENTERADO</button>`);
+  if(tp){ const partes = []; if(tp.A.length) partes.push(tp.A.length+(tp.A.length===1?" autorización pendiente":" autorizaciones pendientes")); if(tp.L.length) partes.push(tp.L.length+(tp.L.length===1?" objeto perdido sin resolver":" objetos perdidos sin resolver"));
+    const det = tp.A.slice(0,4).map(a => "🚕 "+esc(a.asunto||"")+(a.recordar_en?" ("+fecha(a.recordar_en)+")":"")).concat(tp.L.slice(0,3).map(o => "#"+o.nro+" "+esc(o.objeto)+(o.movil?" (móvil "+esc(o.movil)+")":"")));
+    h += fila(`<div><b style="font-size:17px">🔄 Cambio de turno ${tp.t.nombre}: ${partes.join(" y ")}</b><br><span style="opacity:.9;font-size:13px">${det.join(" · ")}${(tp.A.length>4||tp.L.length>3)?" …":""}</span></div>`, `<button class="b" data-turno="${tp.t.key}|${tp.L.length+tp.A.length}">ENTERADO</button>`); }
   if(sonando) box.innerHTML = h;
 }
 let viId = null, viPaso = 1, viModo = "visto", viTurno = null;
-function viAbrir(id, modo, turno){ const o = items.find(x=>x.id===id); viId = id; viPaso = 1; viModo = modo||"visto"; viTurno = turno||null;
-  $("mViTit").textContent = viModo==="turno" ? "🔄 ¿Quién toma el turno?" : viModo==="recor" ? "⏰ ¿Quién volvió a preguntar?" : "👁 ¿Quién lo vio?";
-  $("mViNotaBox").classList.toggle("hidden", viModo!=="recor"); $("mViNota").value = "";
-  $("mViObj").textContent = viModo==="turno" ? "Confirmá que leíste los reclamos pendientes." : o ? `#${o.nro} · ${o.objeto}` : ""; $("mViNom").value = st.get("obj_vi_nom"); $("mViPass").value = ""; $("mViN1").value = ""; $("mViN2").value = "";
+function viAbrir(id, modo, turno){ viId = id; viPaso = 1; viModo = modo||"visto"; viTurno = turno||null;
+  const esA = viModo==="aut" || viModo==="autrec"; const o = esA ? auts.find(x=>x.id===id) : items.find(x=>x.id===id);
+  $("mViTit").textContent = viModo==="turno" ? "🔄 ¿Quién toma el turno?" : viModo==="recor" ? "⏰ ¿Quién volvió a preguntar?" : viModo==="autrec" ? "📅 ¿Quién atiende el viaje?" : "👁 ¿Quién lo vio?";
+  $("mViNotaBox").classList.toggle("hidden", viModo!=="recor" && viModo!=="autrec"); $("mViNota").value = "";
+  $("mViObj").textContent = viModo==="turno" ? "Confirmá que leíste lo pendiente del turno anterior." : !o ? "" : esA ? `🚕 ${o.asunto||""}` : `#${o.nro} · ${o.objeto}`; $("mViNom").value = st.get("obj_vi_nom"); $("mViPass").value = ""; $("mViN1").value = ""; $("mViN2").value = "";
   $("mViP1").classList.remove("hidden"); $("mViP2").classList.add("hidden"); $("mViErr").textContent = ""; $("mVi").classList.remove("hidden");
   setTimeout(() => ($("mViNom").value ? $("mViPass") : $("mViNom")).focus(), 50); }
 function viCerrar(){ $("mVi").classList.add("hidden"); viId = null; }
@@ -282,6 +312,8 @@ async function viOk(){
   $("mViOk").disabled = true; $("mViErr").textContent = "";
   try{ const d = viModo==="turno" ? await rpc("objetos_turno_ok",{p_clave:clave,p_turno:viTurno.key,p_pendientes:viTurno.n,p_nombre:nom,p_pass:pass,p_nueva:nueva})
       : viModo==="recor" ? await rpc("objetos_recordatorio_ok",{p_clave:clave,p_id:viId,p_nombre:nom,p_pass:pass,p_nueva:nueva,p_nota:$("mViNota").value.trim()})
+      : viModo==="aut" ? await rpc("autoriz_visto",{p_clave:clave,p_id:viId,p_nombre:nom,p_pass:pass,p_nueva:nueva})
+      : viModo==="autrec" ? await rpc("autoriz_recordatorio_ok",{p_clave:clave,p_id:viId,p_nombre:nom,p_pass:pass,p_nueva:nueva,p_nota:$("mViNota").value.trim()})
       : await rpc("objetos_visto_usr",{p_clave:clave,p_id:viId,p_nombre:nom,p_pass:pass,p_nueva:nueva});
     if(d.cambiar){ viPaso = 2; $("mViP1").classList.add("hidden"); $("mViP2").classList.remove("hidden"); setTimeout(()=>$("mViN1").focus(),50); }
     else if(d.ok){ st.set("obj_vi_nom", d.nombre||nom); viCerrar(); cargar(); }
@@ -292,6 +324,8 @@ $("mViOk").addEventListener("click", viOk); $("mViNo").addEventListener("click",
 $("mVi").addEventListener("keydown", e => { if(e.key==="Enter") viOk(); if(e.key==="Escape") viCerrar(); });
 document.addEventListener("click", e => { const v = e.target.closest("[data-visto]"); if(v) viAbrir(v.dataset.visto);
   const r = e.target.closest("[data-recok]"); if(r) viAbrir(r.dataset.recok, "recor");
+  const av = e.target.closest("[data-avisto]"); if(av) viAbrir(av.dataset.avisto, "aut");
+  const ar = e.target.closest("[data-arecok]"); if(ar) viAbrir(ar.dataset.arecok, "autrec");
   const t = e.target.closest("[data-turno]"); if(t){ const [key,n] = t.dataset.turno.split("|"); viAbrir(null, "turno", {key, n:Number(n)}); }
   const k = e.target.closest("[data-recor]"); if(k){ const [id,hs] = k.dataset.recor.split("|"); k.disabled = true;
     rpc("objetos_recordar",{p_clave:clave,p_id:id,p_horas:Number(hs),p_quien:st.get("obj_vi_nom")||yo}).then(cargar).catch(()=>{}); } });
@@ -305,7 +339,9 @@ function pintar(){
   const res = items.filter(o=>o.estado==="entregado"||o.estado==="cerrado");
   $("n1").textContent = busc.length; $("n2").textContent = guard.length; $("n3").textContent = res.length;
   const abiertos = busc.filter(o=>o.estado==="abierto").length + guard.filter(o=>o.estado==="abierto").length;
-  document.title = (abiertos?"("+abiertos+") ":"") + "Objetos perdidos · 380mil";
+  const aPend = auts.filter(a=>a.estado==="pendiente").length; $("n0").textContent = aPend;
+  document.title = ((abiertos+aPend)?"("+(abiertos+aPend)+") ":"") + "Central 380mil";
+  $("vAut").classList.toggle("hidden", filtro!=="aut"); if(filtro==="aut") pintarAut();
   $("vCargar").classList.toggle("hidden", filtro!=="cargar"); $("vCior").classList.toggle("hidden", filtro!=="cior"); $("vAyuda").classList.toggle("hidden", filtro!=="ayuda");
   const L = filtro==="buscando"?busc:filtro==="guardados"?guard:filtro==="resueltos"?res:null;
   $("lista").classList.toggle("hidden", !L);
@@ -420,8 +456,67 @@ $("cBtn").addEventListener("click", async () => {
 });
 $("kBtn").addEventListener("click", async () => { const n = $("kNueva").value; try{ const d = await rpc("objetos_cambiar_clave",{p_clave:clave,p_nueva:n}); if(d.ok){ clave=n; st.set("obj_clave",n); $("kMsg").textContent = "Clave cambiada. Avisales a los demás."; $("kNueva").value=""; } else $("kMsg").textContent = d.error==="corta"?"Mínimo 4 caracteres.":"No se pudo cambiar."; }catch(e){ $("kMsg").textContent = "Sin conexión."; } });
 
+/* ---------- Autorizados (Centros de Salud) ---------- */
+const sinTilde = t => String(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+const horaCorta = t => { const d = new Date(t); return pad2(d.getHours())+":"+pad2(d.getMinutes()); };
+function tarjetaAut(a){
+  const pend = a.estado==="pendiente", hecho = a.estado==="hecho";
+  const est = pend ? `<span class="tag abierto">Pendiente</span>` : hecho ? `<span class="tag ok">Hecho${a.movil?" · móvil "+esc(a.movil):""}</span>` : `<span class="tag fin">Anulado</span>`;
+  let h = `<div class="it" style="border-left:5px solid ${pend?"#0b3d91":"#b9c6d8"}${pend?"":";opacity:.8"}"><div class="top"><span><span class="tag ok">AUTORIZADO</span> ${est}${a.fuera?' <span class="tag abierto" style="background:#fff4e0;color:#b26a00">Fuera de horario</span>':""}${a.origen==="A mano"?` <span class="tag">A mano${a.cargado_por?" · "+esc(a.cargado_por):""}</span>`:""}</span></div>
+    <div class="obj">${esc(a.asunto||"(sin asunto)")}</div>
+    ${a.desde?`<div style="font-weight:600;margin-top:4px">De ${esc(a.desde)} a ${esc(a.hasta||"?")}</div>`:""}
+    ${a.texto && a.texto!==a.asunto?`<div class="d">${esc(a.texto)}</div>`:""}
+    <div class="m">Recibido ${fecha(a.recibido)}${a.hilo?` · <a href="https://mail.google.com/mail/u/0/#all/${encodeURIComponent(a.hilo)}" target="_blank" rel="noopener">ver el mail</a>`:""}</div>`;
+  if(a.visto_por) h += `<div class="m">👁 Lo vio ${esc(a.visto_por)} · ${fecha(a.visto_en)}</div>`;
+  if(pend && a.recordar_en) h += `<div class="m" style="color:#a35a00;font-weight:600">📅 Avisar ${fecha(a.recordar_en)}${new Date(a.recordar_en)<=new Date()?" (¡ya es hora!)":""}</div>`;
+  const notas = a.notas||[]; if(notas.length) h += `<div class="notas">${notas.map(n=>`💬 ${esc(n.t)} <span class="m">— ${esc(n.quien)}, ${fecha(n.at)}</span>`).join("<br>")}</div>`;
+  h += `<div class="acc">`;
+  if(pend){
+    h += `<button class="b pri" data-ahecho="${esc(a.id)}">✔ Viaje hecho</button><button class="b" data-aprog="${esc(a.id)}">📅 Es para más tarde</button><button class="b" data-anota="${esc(a.id)}">Nota</button><button class="b" data-aanul="${esc(a.id)}">Anular</button>`;
+  } else h += `<button class="b" data-apend="${esc(a.id)}">Volver a pendiente</button><button class="b" data-anota="${esc(a.id)}">Nota</button>`;
+  h += `</div><div class="hidden" id="ain-${esc(a.id)}" style="margin-top:8px"></div></div>`;
+  return h;
+}
+function pintarAut(){
+  const q = sinTilde($("aBus").value.trim()), ver = $("aVer").value;
+  let L = auts.filter(a => ver==="pend" ? a.estado==="pendiente" : ver==="hechos" ? a.estado!=="pendiente" : true);
+  if(q) L = L.filter(a => sinTilde([a.asunto,a.texto,a.desde,a.hasta,a.movil,a.cargado_por].join(" ")).includes(q));
+  L.sort((x,y) => { const rx = x.estado==="pendiente" && x.recordar_en ? new Date(x.recordar_en) : new Date(x.recibido), ry = y.estado==="pendiente" && y.recordar_en ? new Date(y.recordar_en) : new Date(y.recibido); return ver==="pend" ? rx-ry : new Date(y.recibido)-new Date(x.recibido); });
+  const f = document.activeElement; if(f && f.closest && f.closest("#aLista") && f.tagName==="INPUT") return;
+  $("aLista").innerHTML = L.length ? L.map(tarjetaAut).join("") : `<div class="vacio">${ver==="pend"?"No hay autorizaciones pendientes. 👍":"No hay nada acá."}</div>`;
+}
+$("aBus").addEventListener("input", pintarAut); $("aVer").addEventListener("change", pintarAut);
+$("aNueva").addEventListener("click", () => { $("aForm").classList.toggle("hidden"); $("afPac").focus(); });
+$("afBtn").addEventListener("click", async () => {
+  const pac = $("afPac").value.trim(); if(!pac){ $("afMsg").textContent = "Poné el nombre del paciente."; return; }
+  $("afBtn").disabled = true;
+  try{ const d = await rpc("autoriz_cargar",{p_clave:clave,p_quien:st.get("obj_vi_nom")||yo,p_paciente:pac,p_centro:$("afCen").value.trim(),p_desde:$("afDes").value.trim(),p_hasta:$("afHas").value.trim(),p_detalle:$("afDet").value.trim(),p_fuera:$("afFue").checked});
+    if(d.ok){ ["afPac","afCen","afDes","afHas","afDet"].forEach(i=>$(i).value=""); $("afFue").checked=false; $("aForm").classList.add("hidden"); $("afMsg").textContent=""; await cargar(); }
+    else $("afMsg").textContent = "No se pudo guardar.";
+  }catch(e){ $("afMsg").textContent = "Sin conexión."; }
+  $("afBtn").disabled = false;
+});
+async function aAccion(id, o){ try{ await rpc("autoriz_accion",Object.assign({p_clave:clave,p_id:id,p_estado:null,p_movil:null,p_nota:null,p_recordar:null,p_quitar_recordar:false,p_quien:st.get("obj_vi_nom")||yo},o)); }catch(e){} await cargar(); }
+function aCaja(id, html){ const b = document.getElementById("ain-"+id); if(!b) return null; b.innerHTML = html; b.classList.remove("hidden"); const i = b.querySelector("input"); if(i) i.focus(); return b; }
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-ahecho],[data-aprog],[data-anota],[data-aanul],[data-apend],[data-aok]"); if(!t) return;
+  const ds = t.dataset;
+  if(ds.ahecho) aCaja(ds.ahecho, `<div class="g2"><input placeholder="Móvil que hizo el viaje (opcional)" inputmode="numeric" maxlength="6"><button class="b pri" data-aok="hecho|${esc(ds.ahecho)}">Confirmar viaje hecho</button></div>`);
+  if(ds.aprog){ const d = new Date(Date.now()+36e5); const v = `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:00`;
+    aCaja(ds.aprog, `<p class="m" style="margin-bottom:4px">¿Cuándo hay que mandar el auto? A esa hora vuelve a sonar.</p><div class="g2"><input type="datetime-local" value="${v}"><button class="b pri" data-aok="prog|${esc(ds.aprog)}">Avisar a esa hora</button></div>`); }
+  if(ds.anota) aCaja(ds.anota, `<div class="g2"><input placeholder="Escribí la nota" maxlength="300"><button class="b pri" data-aok="nota|${esc(ds.anota)}">Guardar nota</button></div>`);
+  if(ds.aanul) aCaja(ds.aanul, `<div class="g2"><input placeholder="¿Por qué se anula? (ej.: el centro canceló)" maxlength="300"><button class="b pri" data-aok="anul|${esc(ds.aanul)}">Anular</button></div>`);
+  if(ds.apend) aAccion(ds.apend, {p_estado:"pendiente", p_nota:"Volvió a pendiente"});
+  if(ds.aok){ const i = ds.aok.indexOf("|"), que = ds.aok.slice(0,i), id = ds.aok.slice(i+1); const v = (t.parentElement.querySelector("input")||{}).value||""; t.disabled = true;
+    if(que==="hecho") aAccion(id, {p_estado:"hecho", p_movil:v, p_quitar_recordar:true, p_nota:"Viaje hecho"+(v?" por el móvil "+v.replace(/\D/g,""):"")});
+    if(que==="prog"){ if(!v){ t.disabled=false; return; } const d = new Date(v); aAccion(id, {p_recordar:d.toISOString(), p_nota:"Programado: avisar el "+fecha(d)}); }
+    if(que==="nota"){ if(!v.trim()){ t.disabled=false; return; } aAccion(id, {p_nota:v.trim()}); }
+    if(que==="anul") aAccion(id, {p_estado:"anulado", p_quitar_recordar:true, p_nota:"Anulado"+(v.trim()?": "+v.trim():"")});
+  }
+});
+document.addEventListener("keydown", e => { if(e.key!=="Enter") return; const b = e.target.closest && e.target.closest("[id^='ain-']"); if(b){ const k = b.querySelector("[data-aok]"); if(k) k.click(); } });
 if(clave && yo){ $("lNom").value = yo; rpc("objetos_listar",{p_clave:clave}).then(d => { if(d.error) return salir(); turnosV = d.turnos||turnosV; if(d.rol){ rol=d.rol; st.set("obj_rol",rol); } items = d.items||[]; entrar(); }).catch(()=>{}); }
-setInterval(() => { const f = document.activeElement; if(f && f.closest && f.closest("#lista,#vCargar,#vAyuda,#mVi") && f.tagName==="INPUT") return; if(clave && !$("vPanel").classList.contains("hidden")) cargar(); }, 15000);
+setInterval(() => { const f = document.activeElement; if(f && f.closest && f.closest("#lista,#vCargar,#vAyuda,#mVi,#aLista,#aForm") && f.tagName==="INPUT") return; if(clave && !$("vPanel").classList.contains("hidden")) cargar(); }, 15000);
 </script>
 </body>
 </html>
