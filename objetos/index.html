@@ -71,6 +71,8 @@
   <div id="vPanel" class="hidden">
     <div id="alarma" class="hidden" style="background:#c0392b;color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px;animation:lat 1s infinite alternate"></div>
     <div id="sonidoOff" class="hidden" style="background:#fff4e0;border:1px solid #f3d9a8;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:14px">🔇 El sonido está desactivado en esta PC. <button class="b pri" id="actSon">Activar sonido</button></div>
+    <div id="avisar" class="hidden" style="background:#1e8449;color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px"></div>
+    <label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:0 0 10px;color:#555"><input type="checkbox" id="esWa" style="width:auto"> Esta PC tiene el WhatsApp de la oficina (acá suenan los avisos para contestar)</label>
     <div class="tabs" id="tabs">
       <button data-f="buscando" class="on">Pasajeros buscando<span class="n" id="n1"></span></button>
       <button data-f="guardados">Objetos guardados<span class="n" id="n2"></span></button>
@@ -157,6 +159,8 @@ function tarjeta(o){
     <div class="obj">${esc(o.objeto)}</div>${o.descripcion?`<div class="d">${esc(o.descripcion)}</div>`:""}
     <div class="m">${[o.cuando&&"🕘 "+esc(o.cuando), o.recorrido&&"📍 "+esc(o.recorrido), o.movil&&"🚕 Móvil "+esc(o.movil)].filter(Boolean).join("<br>")}</div>
     <div class="m">${[o.contacto_nombre&&"👤 "+esc(o.contacto_nombre), o.contacto_tel&&"📞 "+esc(o.contacto_tel)].filter(Boolean).join(" · ")}${(o.contacto_nombre||o.contacto_tel)?"<br>":""}${esc(o.origen)} · ${fecha(o.creado)}</div>`;
+  if(faltaAvisar(o)) h += `<div style="background:#e8f8ef;border:1px solid #1e8449;color:#145a32;border-radius:10px;padding:8px 10px;margin:6px 0;font-weight:600">📣 Apareció: falta avisarle a ${esCior(o)?"el 147":"el pasajero"} desde el WhatsApp de la oficina <button class="b" data-avisado="${o.id}">Ya le avisé</button></div>`;
+  if(o.avisado_en) h += `<div class="m">📣 Avisado por ${esc(o.avisado_por||"")} · ${fecha(o.avisado_en)}</div>`;
   if(o.visto_por) h += `<div class="m">👁 Lo vio ${esc(o.visto_por)}${o.visto_en?" · "+fecha(o.visto_en):""}</div>`;
   if(o.vinculo){ const v = items.find(x=>x.id===o.vinculo); if(v) h += `<div class="m">🔗 Vinculado con #${v.nro} (${esc(v.objeto)})</div>`; }
   if(o.tipo==="perdido" && o.estado==="abierto"){
@@ -168,11 +172,11 @@ function tarjeta(o){
   if(o.tipo==="perdido" && esCior(o) && o.estado!=="cerrado"){
     const ok = o.estado==="encontrado"||o.estado==="entregado";
     const msg = ciMsg(o, ok);
-    h += `<div class="acc"><button class="b wa" data-copy="${encodeURIComponent(msg)}">📋 Copiar respuesta para el grupo</button>${CIOR.map(c=>`<a class="b" target="_blank" rel="noopener" href="https://wa.me/${c.w}?text=${encodeURIComponent(msg)}">Por privado (${c.n.slice(-9)})</a>`).join("")}</div>`;
+    h += `<div class="acc"><button class="b wa" data-copy="${encodeURIComponent(msg)}"${ok?` data-av="${o.id}"`:""}>📋 Copiar respuesta para el grupo</button>${CIOR.map(c=>`<a class="b"${ok?` data-av="${o.id}"`:""} target="_blank" rel="noopener" href="https://wa.me/${c.w}?text=${encodeURIComponent(msg)}">Por privado (${c.n.slice(-9)})</a>`).join("")}</div>`;
   }
   const tel = o.tipo==="perdido" && !esCior(o) ? o.contacto_tel : "";
   if(tel && o.estado==="encontrado"){ const msg = `Hola${o.contacto_nombre?" "+o.contacto_nombre:""}, te escribimos de Radio Taxi 380mil: ¡apareció tu ${o.objeto.toLowerCase()}! (reclamo #${o.nro}). Podés retirarlo en Pueyrredón 382, Rosario, las 24 horas. Traé tu documento. ¡Saludos!`;
-    h += `<a class="b wa" target="_blank" rel="noopener" href="https://wa.me/${waNum(tel)}?text=${encodeURIComponent(msg)}">Avisar por WhatsApp</a>`; }
+    h += `<a class="b wa" data-av="${o.id}" target="_blank" rel="noopener" href="https://wa.me/${waNum(tel)}?text=${encodeURIComponent(msg)}">Avisar por WhatsApp</a>`; }
   else if(tel && !fin) h += `<a class="b" target="_blank" rel="noopener" href="https://wa.me/${waNum(tel)}">WhatsApp</a>`;
   if(o.tipo==="perdido" && o.estado==="abierto") h += `<button class="b wa" data-tit="${o.id}">📲 Avisar al titular${o.movil?" del móvil "+esc(o.movil):""}</button>`;
   if(o.estado==="abierto" && o.tipo==="perdido") h += `<button class="b pri" data-est="${o.id}|encontrado">Apareció</button>`;
@@ -188,6 +192,26 @@ function tono(f, t0, d){ const a = audio(); if(!a) return; const o = a.createOsc
 function chicharra(){ [880,660,880,660,990].forEach((f,i)=>tono(f,i*.22,.2)); }
 setInterval(() => { if(!sonando) return; const a = audio(); if(a && a.state==="suspended"){ $("sonidoOff").classList.remove("hidden"); return; } $("sonidoOff").classList.add("hidden"); chicharra(); }, 3000);
 $("actSon").addEventListener("click", async () => { const a = audio(); try{ await a.resume(); }catch(e){} $("sonidoOff").classList.add("hidden"); chicharra(); });
+const faltaAvisar = o => o.tipo==="perdido" && o.estado==="encontrado" && !o.avisado_en && (esCior(o) || !!o.contacto_tel);
+const esWa = () => st.get("obj_wa")==="1";
+$("esWa").checked = esWa();
+$("esWa").addEventListener("change", e => { st.set("obj_wa", e.target.checked?"1":""); pintar(); });
+let ultAviso = 0;
+function avisos(){
+  const L = esWa() ? items.filter(faltaAvisar) : [];
+  const box = $("avisar"); box.classList.toggle("hidden", !L.length);
+  if(L.length) box.innerHTML = L.map(o => `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0">
+      <div><b style="font-size:17px">📣 Apareció: ${esc(o.objeto)}</b><br><span style="opacity:.9;font-size:13px">#${o.nro} · Hay que avisarle a ${esCior(o)?"el grupo del 147":"el pasajero"}${o.movil?" · Móvil "+esc(o.movil):""}</span></div>
+      <button class="b" style="background:#fff;color:#1e8449;border-color:#fff" data-ir="${o.id}">CONTESTAR</button></div>`).join("");
+  if(L.length && Date.now()-ultAviso > 30000){ ultAviso = Date.now(); const a = audio(); if(a && a.state!=="suspended") [523,659,784].forEach((f,i)=>tono(f,i*.18,.25)); }
+}
+async function marcarAvisado(id){ try{ await rpc("objetos_avisado",{p_clave:clave,p_id:id,p_quien:yo}); }catch(err){} cargar(); }
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-av]"); if(a){ const id = a.dataset.av; setTimeout(() => marcarAvisado(id), 800); }
+  const y = e.target.closest("[data-avisado]"); if(y){ y.disabled = true; marcarAvisado(y.dataset.avisado); }
+  const g = e.target.closest("[data-ir]"); if(g){ filtro = "buscando"; document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x.dataset.f==="buscando")); pintar();
+    setTimeout(() => { const el = document.querySelector(`[data-avisado="${g.dataset.ir}"]`); if(el) el.closest(".it").scrollIntoView({behavior:"smooth",block:"center"}); }, 50); }
+});
 function alarma(){
   const nuevos = items.filter(o => !o.visto_en && o.estado==="abierto");
   sonando = nuevos.length > 0;
@@ -200,7 +224,7 @@ document.addEventListener("click", async e => { const v = e.target.closest("[dat
   try{ await rpc("objetos_visto",{p_clave:clave,p_id:v.dataset.visto,p_quien:yo}); }catch(err){} cargar(); });
 
 function pintar(){
-  alarma();
+  alarma(); avisos();
   const busc = items.filter(o=>o.tipo==="perdido"&&(o.estado==="abierto"||o.estado==="encontrado"));
   const guard = items.filter(o=>o.tipo==="encontrado"&&(o.estado==="abierto"||o.estado==="encontrado"));
   const res = items.filter(o=>o.estado==="entregado"||o.estado==="cerrado");
