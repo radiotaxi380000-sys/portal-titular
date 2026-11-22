@@ -165,7 +165,7 @@ function tarjeta(o){
     const ok = o.estado==="encontrado"||o.estado==="entregado";
     const msg = ok ? `Hola, les escribimos de Radio Taxi 380mil por el reclamo${ra?" del R.A. "+ra:""}${o.cuando?" ("+o.cuando+")":""}: apareció el objeto (${o.objeto}). El pasajero puede retirarlo en Pueyrredón 382, Rosario, las 24 horas, con su documento. Gracias.`
                    : `Hola, les escribimos de Radio Taxi 380mil por el reclamo${ra?" del R.A. "+ra:""}${o.cuando?" ("+o.cuando+")":""} (${o.objeto}): lo recibimos y ya lo estamos buscando con el chofer. Les avisamos cualquier novedad.`;
-    h += `<div class="acc">${CIOR.map(c=>`<a class="b wa" target="_blank" rel="noopener" href="https://wa.me/${c.w}?text=${encodeURIComponent(msg)}">${ok?"Avisar al 147":"Confirmar al 147"} (${c.n.slice(-9)})</a>`).join("")}</div>`;
+    h += `<div class="acc"><button class="b wa" data-copy="${encodeURIComponent(msg)}">📋 Copiar respuesta para el grupo</button>${CIOR.map(c=>`<a class="b" target="_blank" rel="noopener" href="https://wa.me/${c.w}?text=${encodeURIComponent(msg)}">Por privado (${c.n.slice(-9)})</a>`).join("")}</div>`;
   }
   const tel = o.tipo==="perdido" && !esCior(o) ? o.contacto_tel : "";
   if(tel && o.estado==="encontrado"){ const msg = `Hola${o.contacto_nombre?" "+o.contacto_nombre:""}, te escribimos de Radio Taxi 380mil: ¡apareció tu ${o.objeto.toLowerCase()}! (reclamo #${o.nro}). Podés retirarlo en Pueyrredón 382, Rosario, las 24 horas. Traé tu documento. ¡Saludos!`;
@@ -193,6 +193,13 @@ document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click
 let pendiente = null;
 async function accion(id, estado, vinculo, nota){ try{ const d = await rpc("objetos_accion",{p_clave:clave,p_id:id,p_estado:estado||null,p_vinculo:vinculo||null,p_nota:nota||null,p_quien:yo}); if(d.error==="clave") return salir("La clave cambió."); }catch(e){ alertar("No se pudo guardar."); } await cargar(); }
 function alertar(t){ $("yo").textContent = t; setTimeout(()=>entrar(),2500); }
+document.addEventListener("click", async e => {
+  const c = e.target.closest("[data-copy]"); if(!c) return;
+  const txt = decodeURIComponent(c.dataset.copy);
+  try{ await navigator.clipboard.writeText(txt); c.textContent = "✓ Copiado: pegalo en el grupo del 147"; }
+  catch(err){ prompt("Copiá este texto:", txt); }
+  setTimeout(() => { c.textContent = "📋 Copiar respuesta para el grupo"; }, 4000);
+});
 document.addEventListener("click", e => {
   const t = e.target.closest("[data-est],[data-vin],[data-ent],[data-nota],[data-ok]"); if(!t) return;
   if(t.dataset.est){ const [id,es] = t.dataset.est.split("|"); accion(id, es, null, es==="encontrado"?"Marcado como encontrado":es==="cerrado"?"Cerrado":"Reabierto"); }
