@@ -192,12 +192,23 @@ function tarjeta(o){
     h += `<a class="b wa" data-av="${o.id}" target="_blank" rel="noopener" href="https://wa.me/${waNum(tel)}?text=${encodeURIComponent(msg)}">Avisar por WhatsApp</a>`; }
   else if(tel && !fin) h += `<a class="b" target="_blank" rel="noopener" href="https://wa.me/${waNum(tel)}">WhatsApp</a>`;
   if(o.tipo==="perdido" && o.estado==="abierto") h += `<button class="b wa" data-tit="${o.id}">📲 Avisar al titular${o.movil?" del móvil "+esc(o.movil):""}</button>`;
-  if(o.estado==="abierto" && o.tipo==="perdido") h += `<button class="b pri" data-est="${o.id}|encontrado">Apareció</button>`;
+  if(o.estado==="abierto" && o.tipo==="perdido") h += `<button class="b pri" data-est="${o.id}|encontrado">Apareció</button><button class="b" data-noap="${o.id}">No apareció</button>`;
   if(!fin) h += `<button class="b" data-ent="${o.id}">Entregado</button><button class="b" data-est="${o.id}|cerrado">Cerrar</button>`;
   if(fin) h += `<button class="b" data-est="${o.id}|abierto">Reabrir</button>`;
   h += `<button class="b" data-nota="${o.id}">Nota</button></div><div class="hidden" id="in-${o.id}"><input placeholder="" maxlength="300"><button class="b pri" style="margin-top:6px" data-ok="${o.id}">Guardar</button></div></div>`;
   return h;
 }
+document.addEventListener("click", async e => { const t = e.target.closest("[data-noap]"); if(!t) return;
+  const o = items.find(x=>x.id===t.dataset.noap); if(!o) return;
+  if(!confirm(`¿Cerrar el reclamo #${o.nro} (${o.objeto}) como NO APARECIÓ?`)) return;
+  let msg = "";
+  if(esCior(o)) msg = ciMsg(o, "no");
+  else if(o.contacto_tel) msg = `Hola${o.contacto_nombre?" "+o.contacto_nombre:""}, te escribimos de Radio Taxi 380mil por tu reclamo #${o.nro} (${o.objeto.toLowerCase()}). Consultamos con el móvil y lamentablemente no quedó en el auto. Si llega a aparecer, te avisamos.`;
+  if(msg){ try{ await navigator.clipboard.writeText(msg); }catch(err){ prompt("Copiá este texto:", msg); }
+    if(!esCior(o)) window.open(`https://wa.me/${waNum(o.contacto_tel)}?text=${encodeURIComponent(msg)}`,"_blank","noopener"); }
+  await accion(o.id, "cerrado", null, "No apareció: el chofer/titular revisó y no quedó en el auto");
+  if(esCior(o)) alert("Listo. La respuesta para el 147 ya está copiada: pegala en el grupo.");
+});
 /* ---------- Alarma: suena en todas las PC hasta que alguien toca "LO VI" ---------- */
 let actx = null, sonando = false;
 function audio(){ try{ if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} return actx; }
@@ -337,6 +348,7 @@ let ci = null;
 function ciMsg(o, ok){
   const ra = (String(o.descripcion||"").match(/R\.A\. (\d+)/)||[,""])[1];
   const ref = `R.A. ${ra||"—"}${o.cuando?" · "+o.cuando:""} · ${o.objeto}`;
+  if(ok==="no") return `📭 *380mil – Objeto no encontrado*\n${ref}\nConsultamos con el móvil y el objeto no quedó en el auto. Si llega a aparecer, les avisamos.`;
   return ok
     ? `✅ *380mil – Objeto encontrado*\n${ref}\nEl pasajero puede retirarlo en *Pueyrredón 382*, las 24 horas, con su DNI.`
     : `📥 *380mil – Reclamo recibido*\n${ref}\nYa estamos tratando de comunicarnos con el chofer. Les avisamos apenas tengamos novedades.`;
