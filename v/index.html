@@ -67,6 +67,7 @@ textarea{min-height:80px;resize:vertical}
   <div class="card">
     <button class="fila" id="contacto"><span class="ic">💾</span><span><b>Guardar nuestro número</b><small>Así nos tenés a mano la próxima vez</small></span><span class="fl">›</span></button>
     <a class="fila" id="olvide" href="../perdi/"><span class="ic">🎒</span><span><b>Me olvidé algo en el auto</b><small>Te ayudamos a recuperarlo</small></span><span class="fl">›</span></a>
+    <a class="fila" id="waAdm" href="https://wa.me/5493413138944?text=Hola%2C%20les%20escribo%20desde%20el%20QR%20del%20taxi" target="_blank" rel="noopener"><span class="ic">💬</span><span><b>WhatsApp de administración</b><small>Consultas, reclamos y cuentas corrientes · 341 313-8944</small></span><span class="fl">›</span></a>
     <button class="fila" id="abrirEmp"><span class="ic">🏢</span><span><b>¿Tu empresa necesita taxis?</b><small>Cuenta corriente sin costo de alta</small></span><span class="fl">›</span></button>
   </div>
 
@@ -84,7 +85,7 @@ textarea{min-height:80px;resize:vertical}
 
   <div class="pie">
     <b>Taxi 380mil</b> · Pueyrredón 382, Rosario<br>
-    341 4-380.000 · 341 438-2222 · 341 485-2222
+    Taxis: 341 4-380.000 · 341 438-2222 · 341 485-2222<br>Administración (WhatsApp): 341 313-8944
     <div class="sellos"><span>Tarifa municipal</span><span>Choferes habilitados</span><span>24 hs</span></div>
   </div>
 </main>
@@ -94,7 +95,8 @@ const $ = id => document.getElementById(id);
 const rpc = (fn, b) => fetch(SB + fn, {method:"POST", headers:{apikey:KEY, Authorization:"Bearer "+KEY, "Content-Type":"application/json"}, body:JSON.stringify(b)}).then(r => r.json());
 const q = new URLSearchParams(location.search);
 const M = (q.get("m") || "").replace(/\D/g, "").slice(0, 6);
-if(M){ $("nm").textContent = M; $("chip").classList.remove("hidden"); $("olvide").href = "../perdi/?m=" + M;
+if(M){ $("waAdm").href = "https://wa.me/5493413138944?text=" + encodeURIComponent("Hola, les escribo desde el QR del móvil " + M);
+  $("nm").textContent = M; $("chip").classList.remove("hidden"); $("olvide").href = "../perdi/?m=" + M;
   $("waPedir").href = "https://wa.me/543414380000?text=" + encodeURIComponent("Hola, quiero pedir un taxi (vi el QR del móvil " + M + ")"); }
 try{ rpc("pasajero_visita", {p_movil: M}); }catch(e){}
 if(M) rpc("calco_ra", {p_movil: M}).then(d => { if(d && d.ra) $("nra").textContent = " · R.A. " + d.ra; }).catch(()=>{});
@@ -103,7 +105,7 @@ if(/iPhone|iPad|iPod/i.test(ua)) $("app").href = "https://apps.apple.com/ar/app/
 const h = new Date().getHours(); $("saludo").textContent = (h < 6 ? "¡Buenas noches!" : h < 13 ? "¡Buen día!" : h < 20 ? "¡Buenas tardes!" : "¡Buenas noches!") + " Gracias por viajar con nosotros";
 
 $("contacto").onclick = () => {
-  const v = ["BEGIN:VCARD","VERSION:3.0","FN:Taxi 380mil","ORG:Taxi 380mil","TEL;TYPE=WORK,VOICE:+543414380000","TEL;TYPE=WORK,VOICE:+543414382222","TEL;TYPE=WORK,VOICE:+543414852222","ADR;TYPE=WORK:;;Pueyrredón 382;Rosario;Santa Fe;;Argentina","URL:https://radiotaxi380mil.com","NOTE:Taxis las 24 hs","END:VCARD"].join("\r\n");
+  const v = ["BEGIN:VCARD","VERSION:3.0","FN:Taxi 380mil","ORG:Taxi 380mil","TEL;TYPE=WORK,VOICE:+543414380000","TEL;TYPE=WORK,VOICE:+543414382222","TEL;TYPE=WORK,VOICE:+543414852222","TEL;TYPE=CELL,TYPE=WORK:+5493413138944","ADR;TYPE=WORK:;;Pueyrredón 382;Rosario;Santa Fe;;Argentina","URL:https://radiotaxi380mil.com","NOTE:Taxis las 24 hs","END:VCARD"].join("\r\n");
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([v], {type:"text/vcard"})); a.download = "Taxi 380mil.vcf"; document.body.appendChild(a); a.click(); a.remove();
 };
 $("abrirEmp").onclick = () => { const c = $("cEmp"); c.style.display = c.style.display === "none" ? "block" : "none"; if(c.style.display === "block"){ c.scrollIntoView({behavior:"smooth", block:"start"}); $("eEmp").focus(); } };
