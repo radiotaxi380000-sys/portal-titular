@@ -16,7 +16,7 @@
   :root{
     --azul:#0b3d91; --azul2:#1256c4; --celeste:#4fb3ff; --celeste-claro:#e8f4ff;
     --gris:#5b6b82; --borde:#dbe6f5; --fondo:#f3f7fc;
-    --ok:#1a8f5a; --ok-bg:#e6f6ee; --warn:#b26a00; --warn-bg:#fff4e0; --rojo:#c0392b; --rojo-bg:#fdecea;
+    --ok:#1a8f5a; --ok-bg:#e6f6ee; --warn:#b3261e; --warn-bg:#fdecea; --rojo:#c0392b; --rojo-bg:#fdecea;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:Inter,system-ui,sans-serif;background:var(--fondo);color:#13233d;min-height:100vh}
@@ -56,7 +56,7 @@
   .mini{background:var(--fondo);border-radius:12px;padding:12px}
   .mini .lbl{font-size:12px}
   .mini .val{font-size:16px;font-weight:700;margin-top:3px}
-  .aviso{margin-top:16px;padding:14px;border-radius:12px;background:var(--warn-bg);border:1px solid #f3d9a8;font-size:14px;line-height:1.5;color:#5c3b00}
+  .aviso{margin-top:16px;padding:14px;border-radius:12px;background:var(--warn-bg);border:1px solid #f5c2bd;font-size:14px;line-height:1.5;color:#5c3b00}
   .aviso.ok{background:var(--ok-bg);border-color:#bfe6d1;color:#0f5a38}
   .alerta{margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--azul);color:#fff;font-size:14px;font-weight:600;display:flex;align-items:center;gap:10px;cursor:pointer}
   .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:14px;background:#fff;border:1px solid var(--borde);border-radius:14px;padding:5px;position:sticky;top:8px;z-index:5}
@@ -151,7 +151,7 @@
       <img src="icono-192.png" alt="" class="logo-img">
       <h1>Radio Taxi 380mil<small>Portal del Titular</small></h1>
     </div>
-    <button class="bell hidden" id="bell" aria-label="Novedades">🔔<span class="n hidden" id="bellN"></span></button>
+    <button class="bell hidden" id="bell" aria-label="Novedades">🚨<span class="n hidden" id="bellN"></span></button>
   </div>
 </header>
 
@@ -193,7 +193,7 @@
     <div class="card first">
       <div class="hello">
         <div><p class="muted">Hola,</p><h2 id="fNombre"></h2><p class="muted" id="fCant"></p></div>
-        <div class="movil">🚕</div>
+        <div class="movil">🚙</div>
       </div>
       <div id="fEstado"></div>
       <div class="saldo"><div class="lbl">Saldo total de tus móviles</div><div class="monto" id="fTotal"></div></div>
@@ -480,7 +480,7 @@ function pintarNovedades(){
   $("bellN").textContent = nuevas; $("bellN").classList.toggle("hidden", !nuevas);
   $("tabDot").classList.toggle("hidden", !nuevas);
   ["cAlerta","fAlerta"].forEach(id => { const al = $(id); al.classList.toggle("hidden", !nuevas);
-    al.innerHTML = `🔔 Tenés ${nuevas} novedad${nuevas>1?"es":""} nueva${nuevas>1?"s":""} de la empresa`; });
+    al.innerHTML = `🚨 Tenés ${nuevas} novedad${nuevas>1?"es":""} nueva${nuevas>1?"s":""} de la empresa`; });
 }
 /* Video: YouTube se ve ahí mismo; otro link (Drive) abre aparte */
 function ytId(u){ const m = String(u||"").match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/))([\w-]{11})/); return m ? m[1] : null; }
