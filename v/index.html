@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Radio Taxi 380mil · Gracias por viajar</title>
-<meta name="description" content="Radio Taxi 380mil, la primera radio taxi de Rosario. Pedí tu taxi las 24 hs.">
+<title>Taxi 380mil · Gracias por viajar</title>
+<meta name="description" content="Taxi 380mil, la primera radio taxi de Rosario. Pedí tu taxi las 24 hs.">
 <meta name="theme-color" content="#0b3d91">
 <link rel="icon" href="../icono-192.png">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
@@ -48,10 +48,10 @@ textarea{min-height:80px;resize:vertical}
 </head>
 <body>
 <div class="hero"><div class="dam"></div>
-  <div class="marca"><img src="../icono-192.png" alt=""><div><b>Radio Taxi 380mil</b><small>La primera radio taxi de Rosario · desde 1980</small></div></div>
+  <div class="marca"><img src="../icono-192.png" alt=""><div><b>Taxi 380mil</b><small>En Rosario desde 1980</small></div></div>
   <h1 id="saludo">¡Gracias por viajar con nosotros!</h1>
   <p>Estamos las 24 horas, los 365 días.</p>
-  <div class="movil hidden" id="chip">🚙 Viajaste en el móvil <span id="nm"></span></div>
+  <div class="movil hidden" id="chip">🚙 Móvil <span id="nm"></span><span id="nra"></span></div>
 </div>
 <main>
   <div class="card">
@@ -82,24 +82,8 @@ textarea{min-height:80px;resize:vertical}
     <div class="ok hidden" id="eOk">¡Gracias! Te vamos a contactar a la brevedad.</div>
   </div>
 
-  <div class="card" id="cCal">
-    <h2>¿Cómo estuvo tu viaje?</h2>
-    <div class="sub">Tu opinión nos ayuda a mejorar. Es anónima.</div>
-    <div class="estrellas" id="est">
-      <button data-n="1" aria-label="1 estrella">★</button><button data-n="2" aria-label="2 estrellas">★</button><button data-n="3" aria-label="3 estrellas">★</button><button data-n="4" aria-label="4 estrellas">★</button><button data-n="5" aria-label="5 estrellas">★</button>
-    </div>
-    <div id="calMas" class="hidden">
-      <textarea id="com" maxlength="800" placeholder="Contanos algo más (opcional)"></textarea>
-      <input id="calCont" class="hidden" maxlength="120" placeholder="Si querés que te contactemos, tu teléfono (opcional)" inputmode="tel">
-      <button class="btn pri" style="width:100%;margin-top:10px" id="calBtn">Enviar</button>
-      <div class="err" id="calErr"></div>
-    </div>
-    <div class="ok hidden" id="calOk"></div>
-    <a class="btn sec hidden" style="width:100%;margin-top:10px" id="resena" href="https://share.google/XfEcsfHQlLONZNGBj" target="_blank" rel="noopener">★ Dejanos una reseña en Google</a>
-  </div>
-
   <div class="pie">
-    <b>Radio Taxi 380mil</b> · Pueyrredón 382, Rosario<br>
+    <b>Taxi 380mil</b> · Pueyrredón 382, Rosario<br>
     341 4-380.000 · 341 438-2222 · 341 485-2222
     <div class="sellos"><span>Tarifa municipal</span><span>Choferes habilitados</span><span>24 hs</span></div>
   </div>
@@ -113,13 +97,14 @@ const M = (q.get("m") || "").replace(/\D/g, "").slice(0, 6);
 if(M){ $("nm").textContent = M; $("chip").classList.remove("hidden"); $("olvide").href = "../perdi/?m=" + M;
   $("waPedir").href = "https://wa.me/543414380000?text=" + encodeURIComponent("Hola, quiero pedir un taxi (vi el QR del móvil " + M + ")"); }
 try{ rpc("pasajero_visita", {p_movil: M}); }catch(e){}
+if(M) rpc("calco_ra", {p_movil: M}).then(d => { if(d && d.ra) $("nra").textContent = " · R.A. " + d.ra; }).catch(()=>{});
 const ua = navigator.userAgent;
 if(/iPhone|iPad|iPod/i.test(ua)) $("app").href = "https://apps.apple.com/ar/app/taxi-380mil/id6751862747";
 const h = new Date().getHours(); $("saludo").textContent = (h < 6 ? "¡Buenas noches!" : h < 13 ? "¡Buen día!" : h < 20 ? "¡Buenas tardes!" : "¡Buenas noches!") + " Gracias por viajar con nosotros";
 
 $("contacto").onclick = () => {
-  const v = ["BEGIN:VCARD","VERSION:3.0","FN:Radio Taxi 380mil","ORG:Radio Taxi 380mil","TEL;TYPE=WORK,VOICE:+543414380000","TEL;TYPE=WORK,VOICE:+543414382222","TEL;TYPE=WORK,VOICE:+543414852222","ADR;TYPE=WORK:;;Pueyrredón 382;Rosario;Santa Fe;;Argentina","URL:https://radiotaxi380mil.com","NOTE:Taxis las 24 hs","END:VCARD"].join("\r\n");
-  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([v], {type:"text/vcard"})); a.download = "Radio Taxi 380mil.vcf"; document.body.appendChild(a); a.click(); a.remove();
+  const v = ["BEGIN:VCARD","VERSION:3.0","FN:Taxi 380mil","ORG:Taxi 380mil","TEL;TYPE=WORK,VOICE:+543414380000","TEL;TYPE=WORK,VOICE:+543414382222","TEL;TYPE=WORK,VOICE:+543414852222","ADR;TYPE=WORK:;;Pueyrredón 382;Rosario;Santa Fe;;Argentina","URL:https://radiotaxi380mil.com","NOTE:Taxis las 24 hs","END:VCARD"].join("\r\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([v], {type:"text/vcard"})); a.download = "Taxi 380mil.vcf"; document.body.appendChild(a); a.click(); a.remove();
 };
 $("abrirEmp").onclick = () => { const c = $("cEmp"); c.style.display = c.style.display === "none" ? "block" : "none"; if(c.style.display === "block"){ c.scrollIntoView({behavior:"smooth", block:"start"}); $("eEmp").focus(); } };
 $("eBtn").onclick = async () => {
@@ -132,23 +117,6 @@ $("eBtn").onclick = async () => {
     else $("eErr").textContent = d.error === "limite" ? "Ya recibimos tus datos, gracias." : "Revisá los datos e intentá de nuevo."; }
   catch(e){ $("eErr").textContent = "No hay conexión. Probá de nuevo."; }
   $("eBtn").disabled = false;
-};
-let N = 0;
-document.querySelectorAll("#est button").forEach(b => b.onclick = () => {
-  N = +b.dataset.n; document.querySelectorAll("#est button").forEach(x => x.classList.toggle("on", +x.dataset.n <= N));
-  $("calMas").classList.remove("hidden"); $("calCont").classList.toggle("hidden", N > 3);
-  $("com").placeholder = N <= 3 ? "¿Qué pasó? Contanos para poder mejorarlo" : "¿Algo que quieras destacar del chofer o del viaje? (opcional)";
-});
-$("calBtn").onclick = async () => {
-  if(!N) return; $("calBtn").disabled = true; $("calErr").textContent = "";
-  try{ const d = await rpc("pasajero_calificar", {p_movil:M, p_estrellas:N, p_comentario:$("com").value, p_contacto:$("calCont").value});
-    if(d.ok || d.error === "limite"){
-      $("est").classList.add("hidden"); $("calMas").classList.add("hidden");
-      $("calOk").textContent = N >= 4 ? "¡Gracias! Nos alegra que hayas viajado bien. ¿Nos ayudás con una reseña en Google? Son 10 segundos." : "Gracias por contarnos. Lo vamos a revisar para que no vuelva a pasar.";
-      $("calOk").classList.remove("hidden"); if(N >= 4) $("resena").classList.remove("hidden");
-    } else $("calErr").textContent = "No se pudo enviar. Probá de nuevo.";
-  }catch(e){ $("calErr").textContent = "No hay conexión. Probá de nuevo."; }
-  $("calBtn").disabled = false;
 };
 </script>
 </body>
