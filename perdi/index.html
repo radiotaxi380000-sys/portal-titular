@@ -145,6 +145,8 @@ $("f").addEventListener("submit", async e => {
   finally{ $("btn").disabled = false; $("btn").textContent = "Enviar aviso"; }
 });
 function falla(t){ $("err").textContent = t; $("err").style.display = "block"; }
+
+(function(){ try{ const q=new URLSearchParams(location.search); const m=(q.get("m")||"").replace(/\D/g,"").slice(0,6); if(m){ const el=document.getElementById("movil"); if(el) el.value=m; } const d=document.getElementById("dia"); if(d && !d.value){ const t=new Date(); d.value=t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0"); } }catch(e){} })();
 </script>
 </body>
 </html>

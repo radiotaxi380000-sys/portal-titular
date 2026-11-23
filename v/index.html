@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Radio Taxi 380mil · Gracias por viajar</title>
+<meta name="description" content="Radio Taxi 380mil, la primera radio taxi de Rosario. Pedí tu taxi las 24 hs.">
+<meta name="theme-color" content="#0b3d91">
+<link rel="icon" href="../icono-192.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--azul:#0b3d91;--azul2:#1f6fe0;--celeste:#e8f1fd;--borde:#d6e2f3;--texto:#14233d;--suave:#5b6b85;--rojo:#c0392b;--verde:#1e8449}
+*{box-sizing:border-box;margin:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#f3f7fc;color:var(--texto);min-height:100vh}
+.hero{background:radial-gradient(600px 300px at 90% 0%,#2a7cf0 0%,var(--azul) 55%,#06275f 100%);color:#fff;padding:26px 20px 64px;position:relative;overflow:hidden}
+.dam{position:absolute;right:-10px;top:0;bottom:0;width:70px;background:repeating-conic-gradient(#fff 0 25%,transparent 0 50%) 0 0/26px 26px;opacity:.13}
+.marca{display:flex;align-items:center;gap:12px}.marca img{width:52px;height:52px;border-radius:50%;background:#fff}
+.marca b{display:block;font-size:19px;letter-spacing:.02em}.marca small{opacity:.85;font-size:13px}
+.hero h1{font-size:26px;line-height:1.2;margin-top:22px}
+.hero p{opacity:.9;margin-top:6px;font-size:15px}
+.movil{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:6px 14px;font-weight:700;margin-top:14px;font-size:15px}
+main{max-width:520px;margin:-44px auto 0;padding:0 14px 30px;position:relative}
+.card{background:#fff;border:1px solid var(--borde);border-radius:18px;padding:16px;box-shadow:0 6px 20px rgba(11,61,145,.08);margin-bottom:12px}
+.pedir{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;padding:15px 12px;font:inherit;font-weight:700;font-size:16px;text-decoration:none;cursor:pointer;text-align:center}
+.pri{background:var(--azul);color:#fff}.sec{background:var(--celeste);color:var(--azul)}
+.wa{background:#1e8449;color:#fff}
+.full{grid-column:1/-1}
+h2{font-size:17px;margin-bottom:4px}.sub{color:var(--suave);font-size:14px;margin-bottom:12px}
+.fila{display:flex;align-items:center;gap:12px;padding:12px 4px;border-top:1px solid #eef3fa;text-decoration:none;color:inherit;cursor:pointer;background:none;border-left:0;border-right:0;border-bottom:0;width:100%;font:inherit;text-align:left}
+.fila:first-of-type{border-top:0}
+.fila .ic{width:44px;height:44px;border-radius:12px;background:var(--celeste);display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+.fila b{display:block;font-size:16px}.fila small{color:var(--suave);font-size:13px}
+.fila .fl{margin-left:auto;color:#9fb2cf;font-size:20px}
+.estrellas{display:flex;gap:6px;margin:6px 0 10px}
+.estrellas button{flex:1;height:54px;border-radius:12px;border:1.5px solid var(--borde);background:#fbfdff;font-size:28px;color:#c7d2e3;cursor:pointer}
+.estrellas button.on{color:var(--azul2);border-color:#9cc3f5;background:var(--celeste)}
+textarea,input{width:100%;border:1.5px solid var(--borde);border-radius:12px;padding:12px;font:inherit;font-size:16px;margin-top:8px;background:#fbfdff}
+textarea{min-height:80px;resize:vertical}
+.ok{background:#eaf7ef;border:1px solid #bfe5cc;color:#145a32;border-radius:12px;padding:12px;margin-top:10px;font-weight:600}
+.err{color:var(--rojo);font-size:14px;margin-top:8px;min-height:18px}
+.hidden{display:none!important}
+.pie{text-align:center;color:var(--suave);font-size:13px;line-height:1.6;margin-top:16px}
+.pie b{color:var(--texto)}
+.sellos{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.sellos span{background:#fff;border:1px solid var(--borde);border-radius:999px;padding:5px 10px;font-size:12.5px;color:var(--azul);font-weight:600}
+</style>
+</head>
+<body>
+<div class="hero"><div class="dam"></div>
+  <div class="marca"><img src="../icono-192.png" alt=""><div><b>Radio Taxi 380mil</b><small>La primera radio taxi de Rosario · desde 1980</small></div></div>
+  <h1 id="saludo">¡Gracias por viajar con nosotros!</h1>
+  <p>Estamos las 24 horas, los 365 días.</p>
+  <div class="movil hidden" id="chip">🚙 Viajaste en el móvil <span id="nm"></span></div>
+</div>
+<main>
+  <div class="card">
+    <h2>¿Necesitás otro taxi?</h2>
+    <div class="sub">Pedilo como te quede más cómodo.</div>
+    <div class="pedir">
+      <a class="btn pri" href="tel:+543414380000">📞 Llamar</a>
+      <a class="btn wa" id="waPedir" href="https://wa.me/543414380000?text=Hola%2C%20quiero%20pedir%20un%20taxi" target="_blank" rel="noopener">💬 WhatsApp</a>
+      <a class="btn sec full" id="app" href="https://play.google.com/store/apps/details?id=ar.com.airtrack.tresochenta" target="_blank" rel="noopener">📲 Bajate la app Taxi 380mil</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <button class="fila" id="contacto"><span class="ic">💾</span><span><b>Guardar nuestro número</b><small>Así nos tenés a mano la próxima vez</small></span><span class="fl">›</span></button>
+    <a class="fila" id="olvide" href="../perdi/"><span class="ic">🎒</span><span><b>Me olvidé algo en el auto</b><small>Te ayudamos a recuperarlo</small></span><span class="fl">›</span></a>
+    <button class="fila" id="abrirEmp"><span class="ic">🏢</span><span><b>¿Tu empresa necesita taxis?</b><small>Cuenta corriente sin costo de alta</small></span><span class="fl">›</span></button>
+  </div>
+
+  <div class="card" id="cEmp" style="display:none">
+    <h2>Cuenta corriente para empresas</h2>
+    <div class="sub">Sin costo de alta ni mínimo de consumo. Facturación mensual. Dejanos tus datos y te contactamos.</div>
+    <input id="eEmp" maxlength="120" placeholder="Empresa" autocomplete="organization">
+    <input id="eNom" maxlength="120" placeholder="Tu nombre" autocomplete="name">
+    <input id="eTel" maxlength="40" placeholder="Teléfono / WhatsApp" inputmode="tel" autocomplete="tel">
+    <input id="eMail" maxlength="120" placeholder="Mail (opcional)" inputmode="email" autocomplete="email">
+    <button class="btn pri full" style="width:100%;margin-top:10px" id="eBtn">Enviar</button>
+    <div class="err" id="eErr"></div>
+    <div class="ok hidden" id="eOk">¡Gracias! Te vamos a contactar a la brevedad.</div>
+  </div>
+
+  <div class="card" id="cCal">
+    <h2>¿Cómo estuvo tu viaje?</h2>
+    <div class="sub">Tu opinión nos ayuda a mejorar. Es anónima.</div>
+    <div class="estrellas" id="est">
+      <button data-n="1" aria-label="1 estrella">★</button><button data-n="2" aria-label="2 estrellas">★</button><button data-n="3" aria-label="3 estrellas">★</button><button data-n="4" aria-label="4 estrellas">★</button><button data-n="5" aria-label="5 estrellas">★</button>
+    </div>
+    <div id="calMas" class="hidden">
+      <textarea id="com" maxlength="800" placeholder="Contanos algo más (opcional)"></textarea>
+      <input id="calCont" class="hidden" maxlength="120" placeholder="Si querés que te contactemos, tu teléfono (opcional)" inputmode="tel">
+      <button class="btn pri" style="width:100%;margin-top:10px" id="calBtn">Enviar</button>
+      <div class="err" id="calErr"></div>
+    </div>
+    <div class="ok hidden" id="calOk"></div>
+    <a class="btn sec hidden" style="width:100%;margin-top:10px" id="resena" href="https://www.google.com/maps/search/?api=1&query=Radio+Taxi+380mil+Rosario" target="_blank" rel="noopener">★ Dejanos una reseña en Google</a>
+  </div>
+
+  <div class="pie">
+    <b>Radio Taxi 380mil</b> · Pueyrredón 382, Rosario<br>
+    341 4-380.000 · 341 438-2222 · 341 485-2222
+    <div class="sellos"><span>Tarifa municipal</span><span>Choferes habilitados</span><span>24 hs</span></div>
+  </div>
+</main>
+<script>
+const SB = "https://muemdhlrsjlmxvfraljp.supabase.co/rest/v1/rpc/", KEY = "sb_publishable_WMpo3vPv2NDR5Ms_QEDHyQ_ATzkn46l";
+const $ = id => document.getElementById(id);
+const rpc = (fn, b) => fetch(SB + fn, {method:"POST", headers:{apikey:KEY, Authorization:"Bearer "+KEY, "Content-Type":"application/json"}, body:JSON.stringify(b)}).then(r => r.json());
+const q = new URLSearchParams(location.search);
+const M = (q.get("m") || "").replace(/\D/g, "").slice(0, 6);
+if(M){ $("nm").textContent = M; $("chip").classList.remove("hidden"); $("olvide").href = "../perdi/?m=" + M;
+  $("waPedir").href = "https://wa.me/543414380000?text=" + encodeURIComponent("Hola, quiero pedir un taxi (vi el QR del móvil " + M + ")"); }
+try{ rpc("pasajero_visita", {p_movil: M}); }catch(e){}
+const ua = navigator.userAgent;
+if(/iPhone|iPad|iPod/i.test(ua)) $("app").href = "https://apps.apple.com/ar/app/taxi-380mil/id6751862747";
+const h = new Date().getHours(); $("saludo").textContent = (h < 6 ? "¡Buenas noches!" : h < 13 ? "¡Buen día!" : h < 20 ? "¡Buenas tardes!" : "¡Buenas noches!") + " Gracias por viajar con nosotros";
+
+$("contacto").onclick = () => {
+  const v = ["BEGIN:VCARD","VERSION:3.0","FN:Radio Taxi 380mil","ORG:Radio Taxi 380mil","TEL;TYPE=WORK,VOICE:+543414380000","TEL;TYPE=WORK,VOICE:+543414382222","TEL;TYPE=WORK,VOICE:+543414852222","ADR;TYPE=WORK:;;Pueyrredón 382;Rosario;Santa Fe;;Argentina","URL:https://radiotaxi380mil.com","NOTE:Taxis las 24 hs","END:VCARD"].join("\r\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([v], {type:"text/vcard"})); a.download = "Radio Taxi 380mil.vcf"; document.body.appendChild(a); a.click(); a.remove();
+};
+$("abrirEmp").onclick = () => { const c = $("cEmp"); c.style.display = c.style.display === "none" ? "block" : "none"; if(c.style.display === "block"){ c.scrollIntoView({behavior:"smooth", block:"start"}); $("eEmp").focus(); } };
+$("eBtn").onclick = async () => {
+  const emp = $("eEmp").value.trim(), tel = $("eTel").value.trim(), mail = $("eMail").value.trim();
+  if(emp.length < 2){ $("eErr").textContent = "Poné el nombre de la empresa."; return; }
+  if(!tel && !mail){ $("eErr").textContent = "Dejanos un teléfono o un mail para contactarte."; return; }
+  $("eBtn").disabled = true; $("eErr").textContent = "";
+  try{ const d = await rpc("pasajero_empresa", {p_empresa:emp, p_contacto:$("eNom").value.trim(), p_telefono:tel, p_mail:mail, p_movil:M});
+    if(d.ok){ ["eEmp","eNom","eTel","eMail","eBtn"].forEach(i => $(i).classList.add("hidden")); $("eOk").classList.remove("hidden"); }
+    else $("eErr").textContent = d.error === "limite" ? "Ya recibimos tus datos, gracias." : "Revisá los datos e intentá de nuevo."; }
+  catch(e){ $("eErr").textContent = "No hay conexión. Probá de nuevo."; }
+  $("eBtn").disabled = false;
+};
+let N = 0;
+document.querySelectorAll("#est button").forEach(b => b.onclick = () => {
+  N = +b.dataset.n; document.querySelectorAll("#est button").forEach(x => x.classList.toggle("on", +x.dataset.n <= N));
+  $("calMas").classList.remove("hidden"); $("calCont").classList.toggle("hidden", N > 3);
+  $("com").placeholder = N <= 3 ? "¿Qué pasó? Contanos para poder mejorarlo" : "¿Algo que quieras destacar del chofer o del viaje? (opcional)";
+});
+$("calBtn").onclick = async () => {
+  if(!N) return; $("calBtn").disabled = true; $("calErr").textContent = "";
+  try{ const d = await rpc("pasajero_calificar", {p_movil:M, p_estrellas:N, p_comentario:$("com").value, p_contacto:$("calCont").value});
+    if(d.ok || d.error === "limite"){
+      $("est").classList.add("hidden"); $("calMas").classList.add("hidden");
+      $("calOk").textContent = N >= 4 ? "¡Gracias! Nos alegra que hayas viajado bien. ¿Nos ayudás con una reseña en Google? Son 10 segundos." : "Gracias por contarnos. Lo vamos a revisar para que no vuelva a pasar.";
+      $("calOk").classList.remove("hidden"); if(N >= 4) $("resena").classList.remove("hidden");
+    } else $("calErr").textContent = "No se pudo enviar. Probá de nuevo.";
+  }catch(e){ $("calErr").textContent = "No hay conexión. Probá de nuevo."; }
+  $("calBtn").disabled = false;
+};
+</script>
+</body>
+</html>

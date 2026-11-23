@@ -79,8 +79,16 @@
       <button data-f="guardados">Objetos guardados<span class="n" id="n2"></span></button>
       <button data-f="resueltos">Resueltos<span class="n" id="n3"></span></button>
       <button data-f="cior" id="tabCior">📋 Pegar reclamo del 147</button>
+      <button data-f="pas" id="tabPas">★ Pasajeros<span class="n" id="n5"></span></button>
       <button data-f="cargar">+ Cargar objeto</button>
       <button data-f="ayuda">Links</button>
+    </div>
+    <div id="vPas" class="hidden">
+      <div class="card" style="margin-bottom:12px"><div style="display:flex;gap:10px;flex-wrap:wrap" id="pResumen"></div>
+        <p class="m" style="margin-top:8px">Viene del QR de los autos (titular.radiotaxi380mil.com/v/?m=N). Las de 1 a 3 estrellas solo las ve la oficina; las de 4 y 5 se invitan a dejar reseña en Google.</p></div>
+      <h3 style="margin:6px 0 8px">🏢 Empresas interesadas</h3><div class="grid" id="pEmp"></div>
+      <h3 style="margin:16px 0 8px">★ Calificaciones de los últimos 60 días</h3><div class="grid" id="pCal"></div>
+      <h3 style="margin:16px 0 8px">Mejores móviles del mes</h3><div class="card" id="pRank"></div>
     </div>
     <div id="vAut" class="hidden">
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
@@ -331,8 +339,8 @@ document.addEventListener("click", e => { const v = e.target.closest("[data-vist
     rpc("objetos_recordar",{p_clave:clave,p_id:id,p_horas:Number(hs),p_quien:st.get("obj_vi_nom")||yo}).then(cargar).catch(()=>{}); } });
 
 function pintar(){
-  $("waLbl").classList.toggle("hidden", !ofi()); $("tabCior").classList.toggle("hidden", !ofi()); $("kBox").classList.toggle("hidden", !ofi());
-  if(!ofi() && filtro==="cior") filtro = "buscando";
+  $("waLbl").classList.toggle("hidden", !ofi()); $("tabCior").classList.toggle("hidden", !ofi()); $("tabPas").classList.toggle("hidden", !ofi()); $("kBox").classList.toggle("hidden", !ofi());
+  if(!ofi() && (filtro==="cior"||filtro==="pas")) filtro = "aut";
   alarma(); avisos();
   const busc = items.filter(o=>o.tipo==="perdido"&&(o.estado==="abierto"||o.estado==="encontrado"));
   const guard = items.filter(o=>o.tipo==="encontrado"&&(o.estado==="abierto"||o.estado==="encontrado"));
@@ -342,6 +350,7 @@ function pintar(){
   const aPend = auts.filter(a=>a.estado==="pendiente").length; $("n0").textContent = aPend;
   document.title = ((abiertos+aPend)?"("+(abiertos+aPend)+") ":"") + "Central 380mil";
   $("vAut").classList.toggle("hidden", filtro!=="aut"); if(filtro==="aut") pintarAut();
+  $("vPas").classList.toggle("hidden", filtro!=="pas"); if(filtro==="pas") pintarPas(); $("n5").textContent = pas ? (pas.calif.filter(c=>!c.visto && c.estrellas<=3).length + pas.empresas.filter(e=>!e.visto).length) || "" : "";
   $("vCargar").classList.toggle("hidden", filtro!=="cargar"); $("vCior").classList.toggle("hidden", filtro!=="cior"); $("vAyuda").classList.toggle("hidden", filtro!=="ayuda");
   const L = filtro==="buscando"?busc:filtro==="guardados"?guard:filtro==="resueltos"?res:null;
   $("lista").classList.toggle("hidden", !L);
@@ -519,6 +528,26 @@ document.addEventListener("click", e => {
   }
 });
 document.addEventListener("keydown", e => { if(e.key!=="Enter") return; const b = e.target.closest && e.target.closest("[id^='ain-']"); if(b){ const k = b.querySelector("[data-aok]"); if(k) k.click(); } });
+/* ---------- Pasajeros (QR de los autos) ---------- */
+let pas = null;
+async function cargarPas(){ if(!ofi()) return; try{ const d = await rpc("pasajero_listar",{p_clave:clave}); if(d && d.calif) pas = d; }catch(e){} }
+const estr = n => "★".repeat(n) + "☆".repeat(5-n);
+function pintarPas(){
+  if(!pas){ $("pResumen").innerHTML = '<span class="m">Cargando…</span>'; cargarPas().then(pintar); return; }
+  const k = (n,t) => `<div style="flex:1;min-width:110px;background:#e8f1fd;border-radius:12px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:800;color:#0b3d91">${n}</div><div class="m" style="margin:0">${t}</div></div>`;
+  $("pResumen").innerHTML = k(pas.visitas,"escaneos del QR (30 días)") + k(pas.calif.length,"calificaciones (60 días)") + k(pas.promedio ? pas.promedio+" ★" : "—","promedio del mes") + k(pas.empresas.filter(e=>!e.visto).length,"empresas sin contactar");
+  $("pEmp").innerHTML = pas.empresas.length ? pas.empresas.map(e => `<div class="it" style="border-left:5px solid ${e.visto?"#b9c6d8":"#1f6fe0"}"><div class="obj">${esc(e.empresa)}</div>
+    <div class="m">${esc(e.contacto||"")}${e.telefono?" · 📞 "+esc(e.telefono):""}${e.mail?" · ✉️ "+esc(e.mail):""}</div><div class="m">${fecha(e.creado)}${e.movil?" · vino del QR del móvil "+esc(e.movil):""}</div>
+    <div class="acc">${e.telefono?`<a class="b wa" target="_blank" rel="noopener" href="https://wa.me/${waNum(e.telefono)}">WhatsApp</a>`:""}${e.mail?`<a class="b" href="mailto:${esc(e.mail)}">Mail</a>`:""}${e.visto?'<span class="m">✓ contactada</span>':`<button class="b" data-pvisto="emp|${e.id}">Ya la contacté</button>`}</div></div>`).join("") : '<div class="vacio">Todavía ninguna.</div>';
+  $("pCal").innerHTML = pas.calif.length ? pas.calif.map(c => `<div class="it" style="border-left:5px solid ${c.estrellas<=3?"#d9534f":"#1f6fe0"}${c.visto?";opacity:.75":""}"><div style="font-size:20px;color:${c.estrellas<=3?"#c0392b":"#1f6fe0"};letter-spacing:2px">${estr(c.estrellas)}</div>
+    <div class="m">${c.movil?"Móvil <b>"+esc(c.movil)+"</b> · ":""}${fecha(c.creado)}</div>${c.comentario?`<div class="d">“${esc(c.comentario)}”</div>`:""}${c.contacto?`<div class="m">📞 Quiere que lo contacten: ${esc(c.contacto)}</div>`:""}
+    <div class="acc">${c.contacto?`<a class="b wa" target="_blank" rel="noopener" href="https://wa.me/${waNum(c.contacto)}">WhatsApp</a>`:""}${c.visto?'<span class="m">✓ revisada</span>':`<button class="b" data-pvisto="calif|${c.id}">Revisada</button>`}</div></div>`).join("") : '<div class="vacio">Todavía ninguna.</div>';
+  $("pRank").innerHTML = pas.ranking.length ? '<table style="width:100%;border-collapse:collapse">' + pas.ranking.map((r,i) => `<tr style="border-top:1px solid #eef3fa"><td style="padding:6px">${i+1}.</td><td><b>Móvil ${esc(r.movil)}</b></td><td style="color:#1f6fe0">${r.prom} ★</td><td class="m">${r.n} ${r.n==1?"calificación":"calificaciones"}</td></tr>`).join("") + "</table>" : '<span class="m">Todavía no hay calificaciones.</span>';
+}
+document.addEventListener("click", async e => { const b = e.target.closest("[data-pvisto]"); if(!b) return; const [t,id] = b.dataset.pvisto.split("|"); b.disabled = true;
+  try{ await rpc("pasajero_visto",{p_clave:clave,p_tipo:t,p_id:Number(id)}); }catch(err){} await cargarPas(); pintar(); });
+setInterval(() => { if(ofi() && clave) cargarPas().then(() => { if(filtro==="pas") pintar(); else $("n5").textContent = pas ? (pas.calif.filter(c=>!c.visto && c.estrellas<=3).length + pas.empresas.filter(e=>!e.visto).length) || "" : ""; }); }, 60000);
+setTimeout(() => { if(ofi() && clave) cargarPas().then(pintar); }, 1500);
 function arrancar(intento){ if(!(clave && yo)) return; $("lNom").value = yo; $("lErr").textContent = intento ? "Conectando… (reintento "+intento+")" : "";
   rpc("objetos_listar",{p_clave:clave}).then(d => {
     if(d.error==="clave") return salir("La clave no es correcta. Pedila en la oficina.");
