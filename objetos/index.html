@@ -75,6 +75,7 @@
     <label id="waLbl" style="display:flex;gap:8px;align-items:center;font-size:13px;margin:0 0 10px;color:#555"><input type="checkbox" id="esWa" style="width:auto"> Esta PC tiene el WhatsApp de la oficina (acá suenan los avisos para contestar)</label>
     <div class="tabs" id="tabs">
       <button data-f="aut" class="on">🚙 Autorizados<span class="n" id="n0"></span></button>
+      <button data-f="libro">📓 Libro del turno<span class="n" id="n6"></span></button>
       <button data-f="buscando">Pasajeros buscando<span class="n" id="n1"></span></button>
       <button data-f="guardados">Objetos guardados<span class="n" id="n2"></span></button>
       <button data-f="resueltos">Resueltos<span class="n" id="n3"></span></button>
@@ -82,6 +83,19 @@
       <button data-f="pas" id="tabPas">★ Pasajeros<span class="n" id="n5"></span></button>
       <button data-f="cargar">+ Cargar objeto</button>
       <button data-f="ayuda">Links</button>
+    </div>
+    <div id="vLibro" class="hidden">
+      <div class="card" style="margin-bottom:12px">
+        <h2 style="font-size:17px">Anotá algo para el turno que viene</h2>
+        <p class="m" style="margin:4px 0 8px">Solo lo que el próximo turno tiene que saber o resolver. Lo ve el que entra y lo confirma con ENTERADO.</p>
+        <textarea id="lbTxt" maxlength="500" rows="3" style="width:100%" placeholder="Ej.: el viaje autorizado de las 22 de Centro de Salud Las Flores todavía no está confirmado"></textarea>
+        <div style="display:flex;gap:12px;align-items:center;margin-top:8px;flex-wrap:wrap">
+          <label style="display:flex;gap:6px;align-items:center;font-size:14px"><input type="checkbox" id="lbImp" style="width:auto"> Importante</label>
+          <button class="b pri" id="lbBtn" style="margin-left:auto">Guardar</button>
+        </div>
+        <div class="m" id="lbMsg" style="margin-top:6px"></div>
+      </div>
+      <div class="grid" id="lbLista"></div>
     </div>
     <div id="vPas" class="hidden">
       <div class="card" style="margin-bottom:12px"><div style="display:flex;gap:10px;flex-wrap:wrap" id="pResumen"></div>
@@ -161,7 +175,7 @@ const SB_KEY = "sb_publishable_WMpo3vPv2NDR5Ms_QEDHyQ_ATzkn46l";
 const $ = id => document.getElementById(id);
 const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const st = { get(k){ try{ return localStorage.getItem(k)||""; }catch(e){ return ""; } }, set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} } };
-let turnosV = []; let rol = st.get("obj_rol")||"operador"; const ofi = () => rol==="oficina";
+let turnosV = [], notasT = []; let rol = st.get("obj_rol")||"operador"; const ofi = () => rol==="oficina";
 let clave = st.get("obj_clave"), yo = st.get("obj_yo"), items = [], filtro = "aut", ultimaN = 0;
 
 async function rpc(fn, body){ const r = await fetch(SB_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:SB_KEY,Authorization:"Bearer "+SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(body)}); if(!r.ok) throw new Error("http "+r.status); return r.json(); }
@@ -176,7 +190,7 @@ async function cargar(){
   try{
     const d = await rpc("objetos_listar",{p_clave:clave});
     if(d.error){ if(d.error==="clave"){ salir("La clave no es correcta."); } return; }
-    turnosV = d.turnos||turnosV; if(d.rol){ rol = d.rol; st.set("obj_rol", rol); } items = d.items || []; pintar();
+    turnosV = d.turnos||turnosV; notasT = d.notas_turno||notasT; if(d.rol){ rol = d.rol; st.set("obj_rol", rol); } items = d.items || []; pintar();
   }catch(e){}
 }
 function salir(msg){ clave=""; st.set("obj_clave",""); $("vPanel").classList.add("hidden"); $("vLogin").classList.remove("hidden"); $("lErr").textContent = msg||""; }
@@ -184,7 +198,7 @@ $("lBtn").addEventListener("click", async () => {
   const c = $("lClave").value, n = $("lNom").value.trim();
   if(!n){ $("lErr").textContent = "Poné tu nombre."; return; }
   try{ const d = await rpc("objetos_listar",{p_clave:c}); if(d.error){ $("lErr").textContent = d.error==="limite"?"Demasiados intentos. Esperá unos minutos.":"Clave incorrecta."; return; }
-    clave=c; yo=n; st.set("obj_clave",c); st.set("obj_yo",n); turnosV = d.turnos||turnosV; if(d.rol){ rol=d.rol; st.set("obj_rol",rol); } items=d.items||[]; entrar(); }catch(e){ $("lErr").textContent = "Sin conexión."; }
+    clave=c; yo=n; st.set("obj_clave",c); st.set("obj_yo",n); turnosV = d.turnos||turnosV; notasT = d.notas_turno||notasT; if(d.rol){ rol=d.rol; st.set("obj_rol",rol); } items=d.items||[]; entrar(); }catch(e){ $("lErr").textContent = "Sin conexión."; }
 });
 function entrar(){ cargarAut().then(()=>pintar()); $("vLogin").classList.add("hidden"); $("vPanel").classList.remove("hidden"); $("yo").innerHTML = "👤 "+esc(yo)+' · <a href="#" id="sal" style="color:#fff">salir</a>'; $("sal").onclick = e => { e.preventDefault(); if(!ofi() && !confirm("Si salís, el panel deja de sonar hasta que alguien vuelva a entrar con la clave. ¿Salir igual?")) return; salir(); }; pintar(); }
 
@@ -279,13 +293,14 @@ document.addEventListener("click", e => {
 const pad2 = n => String(n).padStart(2,"0");
 function turnoActual(){ const n = new Date(), t = new Date(n); const h = n.getHours(); let b;
   if(h>=22) b=22; else if(h>=14) b=14; else if(h>=6) b=6; else { b=22; t.setDate(t.getDate()-1); }
-  t.setHours(b,5,0,0); return { key:`${t.getFullYear()}-${pad2(t.getMonth()+1)}-${pad2(t.getDate())} ${pad2(b)}`, desde:t, nombre: b===6?"mañana (6 a 14)":b===14?"tarde (14 a 22)":"noche (22 a 6)" }; }
+  t.setHours(b,5,0,0); return { key:`${t.getFullYear()}-${pad2(t.getMonth()+1)}-${pad2(t.getDate())} ${pad2(b)}`, desde:t, nombre: b===6?"de la mañana (6 a 14)":b===14?"de la tarde (14 a 22)":"de la noche (22 a 6)" }; }
 const vencidos = () => items.filter(o => o.estado==="abierto" && o.recordar_en && new Date(o.recordar_en) <= new Date());
 function turnoPend(){ if(ofi()) return null; const t = turnoActual(); if(new Date() < t.desde) return null;
   if(turnosV.some(x => x.turno===t.key)) return null;
   const L = items.filter(o => o.estado==="abierto" && new Date(o.creado) < t.desde);
   const A = auts.filter(a => a.estado==="pendiente" && new Date(a.recibido) < t.desde && new Date(a.recibido) > new Date(Date.now()-2*864e5));
-  return (L.length || A.length) ? {t, L, A} : null; }
+  const N = notasT.filter(n => !n.leido_en && new Date(n.creado) < t.desde);
+  return (L.length || A.length || N.length) ? {t, L, A, N} : null; }
 function alarma(){
   const nuevos = items.filter(o => !o.visto_en && o.estado==="abierto");
   const venc = ofi() ? [] : vencidos(), tp = turnoPend();
@@ -298,17 +313,17 @@ function alarma(){
   h += aR.map(a => fila(`<div><b style="font-size:17px">📅 Es la hora del viaje autorizado: ${esc(a.asunto||"")}</b><br><span style="opacity:.9;font-size:13px">${a.desde?"De "+esc(a.desde)+" a "+esc(a.hasta||"?")+" · ":""}Lo programó ${esc(a.recordar_por||"")}</span></div>`, `<button class="b" data-arecok="${esc(a.id)}">YA LO ATENDÍ</button>`)).join("");
   h += nuevos.map(o => fila(`<div><b style="font-size:17px">🚨 ${o.tipo==="perdido"?"Pasajero busca":"Chofer encontró"}: ${esc(o.objeto)}</b><br><span style="opacity:.9;font-size:13px">#${o.nro} · ${esc(o.origen)}${o.movil?" · Móvil "+esc(o.movil):""} · ${fecha(o.creado)}</span></div>`, `<button class="b" data-visto="${o.id}">LO VI</button>`)).join("");
   h += venc.map(o => fila(`<div><b style="font-size:17px">⏰ Volver a preguntar${o.movil?" al móvil "+esc(o.movil):""}: ${esc(o.objeto)}</b><br><span style="opacity:.9;font-size:13px">#${o.nro} · Recordatorio que dejó ${esc(o.recordar_por||"")}</span></div>`, `<button class="b" data-recok="${o.id}">YA PREGUNTÉ</button>`)).join("");
-  if(tp){ const partes = []; if(tp.A.length) partes.push(tp.A.length+(tp.A.length===1?" autorización pendiente":" autorizaciones pendientes")); if(tp.L.length) partes.push(tp.L.length+(tp.L.length===1?" objeto perdido sin resolver":" objetos perdidos sin resolver"));
-    const det = tp.A.slice(0,4).map(a => "🚙 "+esc(a.asunto||"")+(a.recordar_en?" ("+fecha(a.recordar_en)+")":"")).concat(tp.L.slice(0,3).map(o => "#"+o.nro+" "+esc(o.objeto)+(o.movil?" (móvil "+esc(o.movil)+")":"")));
-    h += fila(`<div><b style="font-size:17px">🔄 Cambio de turno ${tp.t.nombre}: ${partes.join(" y ")}</b><br><span style="opacity:.9;font-size:13px">${det.join(" · ")}${(tp.A.length>4||tp.L.length>3)?" …":""}</span></div>`, `<button class="b" data-turno="${tp.t.key}|${tp.L.length+tp.A.length}">ENTERADO</button>`); }
+  if(tp){ const partes = []; if(tp.N.length) partes.push(tp.N.length+(tp.N.length===1?" novedad del libro":" novedades del libro")); if(tp.A.length) partes.push(tp.A.length+(tp.A.length===1?" autorización pendiente":" autorizaciones pendientes")); if(tp.L.length) partes.push(tp.L.length+(tp.L.length===1?" objeto perdido sin resolver":" objetos perdidos sin resolver"));
+    const det = tp.N.slice().sort((a,b)=>b.importante-a.importante).slice(0,3).map(n => "📓 "+(n.importante?"<b>IMPORTANTE:</b> ":"")+esc(n.texto.length>70?n.texto.slice(0,70)+"…":n.texto)).concat(tp.A.slice(0,4).map(a => "🚙 "+esc(a.asunto||"")+(a.recordar_en?" ("+fecha(a.recordar_en)+")":"")).concat(tp.L.slice(0,3).map(o => "#"+o.nro+" "+esc(o.objeto)+(o.movil?" (móvil "+esc(o.movil)+")":""))));
+    h += fila(`<div><b style="font-size:17px">🔄 Cambio de turno ${tp.t.nombre}: ${partes.join(" y ")}</b><br><span style="opacity:.9;font-size:13px">${det.join(" · ")}${(tp.A.length>4||tp.L.length>3)?" …":""}</span></div>`, `<button class="b" data-turno="${tp.t.key}|${tp.L.length+tp.A.length+tp.N.length}">ENTERADO</button>`); }
   if(sonando) box.innerHTML = h;
 }
 let viId = null, viPaso = 1, viModo = "visto", viTurno = null;
 function viAbrir(id, modo, turno){ viId = id; viPaso = 1; viModo = modo||"visto"; viTurno = turno||null;
   const esA = viModo==="aut" || viModo==="autrec"; const o = esA ? auts.find(x=>x.id===id) : items.find(x=>x.id===id);
-  $("mViTit").textContent = viModo==="turno" ? "🔄 ¿Quién toma el turno?" : viModo==="recor" ? "⏰ ¿Quién volvió a preguntar?" : viModo==="autrec" ? "📅 ¿Quién atiende el viaje?" : "👁 ¿Quién lo vio?";
+  $("mViTit").textContent = viModo==="nota" ? "📓 ¿Quién anota?" : viModo==="turno" ? "🔄 ¿Quién toma el turno?" : viModo==="recor" ? "⏰ ¿Quién volvió a preguntar?" : viModo==="autrec" ? "📅 ¿Quién atiende el viaje?" : "👁 ¿Quién lo vio?";
   $("mViNotaBox").classList.toggle("hidden", viModo!=="recor" && viModo!=="autrec"); $("mViNota").value = "";
-  $("mViObj").textContent = viModo==="turno" ? "Confirmá que leíste lo pendiente del turno anterior." : !o ? "" : esA ? `🚙 ${o.asunto||""}` : `#${o.nro} · ${o.objeto}`; $("mViNom").value = st.get("obj_vi_nom"); $("mViPass").value = ""; $("mViN1").value = ""; $("mViN2").value = "";
+  $("mViObj").textContent = viModo==="nota" ? "“" + (viTurno && viTurno.texto || "") + "”" : viModo==="turno" ? "Confirmá que leíste lo pendiente del turno anterior." : !o ? "" : esA ? `🚙 ${o.asunto||""}` : `#${o.nro} · ${o.objeto}`; $("mViNom").value = st.get("obj_vi_nom"); $("mViPass").value = ""; $("mViN1").value = ""; $("mViN2").value = "";
   $("mViP1").classList.remove("hidden"); $("mViP2").classList.add("hidden"); $("mViErr").textContent = ""; $("mVi").classList.remove("hidden");
   setTimeout(() => ($("mViNom").value ? $("mViPass") : $("mViNom")).focus(), 50); }
 function viCerrar(){ $("mVi").classList.add("hidden"); viId = null; }
@@ -318,13 +333,14 @@ async function viOk(){
   if(viPaso === 2){ nueva = $("mViN1").value; if(nueva !== $("mViN2").value) return $("mViErr").textContent = "Las dos contraseñas no coinciden.";
     if(nueva.length < 4 || nueva === "1234") return $("mViErr").textContent = "Tiene que tener al menos 4 caracteres y no puede ser 1234."; }
   $("mViOk").disabled = true; $("mViErr").textContent = "";
-  try{ const d = viModo==="turno" ? await rpc("objetos_turno_ok",{p_clave:clave,p_turno:viTurno.key,p_pendientes:viTurno.n,p_nombre:nom,p_pass:pass,p_nueva:nueva})
+  try{ const d = viModo==="nota" ? await rpc("turno_nota_agregar",{p_clave:clave,p_texto:viTurno.texto,p_importante:viTurno.imp,p_nombre:nom,p_pass:pass,p_nueva:nueva})
+      : viModo==="turno" ? await rpc("objetos_turno_ok",{p_clave:clave,p_turno:viTurno.key,p_pendientes:viTurno.n,p_nombre:nom,p_pass:pass,p_nueva:nueva})
       : viModo==="recor" ? await rpc("objetos_recordatorio_ok",{p_clave:clave,p_id:viId,p_nombre:nom,p_pass:pass,p_nueva:nueva,p_nota:$("mViNota").value.trim()})
       : viModo==="aut" ? await rpc("autoriz_visto",{p_clave:clave,p_id:viId,p_nombre:nom,p_pass:pass,p_nueva:nueva})
       : viModo==="autrec" ? await rpc("autoriz_recordatorio_ok",{p_clave:clave,p_id:viId,p_nombre:nom,p_pass:pass,p_nueva:nueva,p_nota:$("mViNota").value.trim()})
       : await rpc("objetos_visto_usr",{p_clave:clave,p_id:viId,p_nombre:nom,p_pass:pass,p_nueva:nueva});
     if(d.cambiar){ viPaso = 2; $("mViP1").classList.add("hidden"); $("mViP2").classList.remove("hidden"); setTimeout(()=>$("mViN1").focus(),50); }
-    else if(d.ok){ st.set("obj_vi_nom", d.nombre||nom); viCerrar(); cargar(); }
+    else if(d.ok){ st.set("obj_vi_nom", d.nombre||nom); if(viModo==="nota"){ $("lbTxt").value=""; $("lbImp").checked=false; $("lbMsg").textContent="✓ Guardado."; } viCerrar(); cargar(); }
     else $("mViErr").textContent = ({pass:"Contraseña incorrecta. Si te la olvidaste, pedile a Daniel que te la blanquee.",nuevo:"No te encuentro. Si es tu primera vez, la contraseña es 1234.",nueva:"Tiene que tener al menos 4 caracteres y no puede ser 1234.",limite:"Demasiados intentos. Esperá unos minutos.",nombre:"Poné tu nombre.",clave:"La clave del panel cambió."})[d.error] || "No se pudo. Probá de nuevo.";
   }catch(err){ $("mViErr").textContent = "Sin conexión. Probá de nuevo."; }
   $("mViOk").disabled = false; }
@@ -350,6 +366,8 @@ function pintar(){
   const aPend = auts.filter(a=>a.estado==="pendiente").length; $("n0").textContent = aPend;
   document.title = ((abiertos+aPend)?"("+(abiertos+aPend)+") ":"") + "Central 380mil";
   $("vAut").classList.toggle("hidden", filtro!=="aut"); if(filtro==="aut") pintarAut();
+  $("vLibro").classList.toggle("hidden", filtro!=="libro"); if(filtro==="libro") pintarLibro();
+  { const nl = notasT.filter(n=>!n.leido_en).length; $("n6").textContent = nl || ""; }
   $("vPas").classList.toggle("hidden", filtro!=="pas"); if(filtro==="pas") pintarPas(); $("n5").textContent = pas ? (pas.calif.filter(c=>!c.visto && c.estrellas<=3).length + pas.empresas.filter(e=>!e.visto).length) || "" : "";
   $("vCargar").classList.toggle("hidden", filtro!=="cargar"); $("vCior").classList.toggle("hidden", filtro!=="cior"); $("vAyuda").classList.toggle("hidden", filtro!=="ayuda");
   const L = filtro==="buscando"?busc:filtro==="guardados"?guard:filtro==="resueltos"?res:null;
@@ -548,14 +566,26 @@ document.addEventListener("click", async e => { const b = e.target.closest("[dat
   try{ await rpc("pasajero_visto",{p_clave:clave,p_tipo:t,p_id:Number(id)}); }catch(err){} await cargarPas(); pintar(); });
 setInterval(() => { if(ofi() && clave) cargarPas().then(() => { if(filtro==="pas") pintar(); else $("n5").textContent = pas ? (pas.calif.filter(c=>!c.visto && c.estrellas<=3).length + pas.empresas.filter(e=>!e.visto).length) || "" : ""; }); }, 60000);
 setTimeout(() => { if(ofi() && clave) cargarPas().then(pintar); }, 1500);
+/* ---------- Libro del turno ---------- */
+function pintarLibro(){
+  const L = notasT.slice().sort((a,b) => (!a.leido_en && a.importante ? 1 : 0) < (!b.leido_en && b.importante ? 1 : 0) ? 1 : (!a.leido_en && a.importante) === (!b.leido_en && b.importante) ? new Date(b.creado)-new Date(a.creado) : -1);
+  $("lbLista").innerHTML = L.length ? L.map(n => `<div class="it" style="border-left:5px solid ${n.importante?"#d9534f":"#1f6fe0"}${n.leido_en?";opacity:.8":""}">
+    ${n.importante?'<div style="color:#c0392b;font-weight:700;font-size:13px">IMPORTANTE</div>':""}
+    <div style="font-size:16px;margin:4px 0;white-space:pre-wrap">${esc(n.texto)}</div>
+    <div class="m">✍️ ${esc(n.autor)} · ${fecha(n.creado)}${n.leido_en?` · 👁 leído por ${esc(n.leido_por)} ${fecha(n.leido_en)}`:" · <b>sin leer</b>"}</div>
+    ${ofi()?`<div class="acc"><button class="b" data-lbborrar="${n.id}">Borrar</button></div>`:""}</div>`).join("") : '<div class="vacio">No hay novedades anotadas en los últimos 7 días.</div>';
+}
+$("lbBtn").onclick = () => { const t = $("lbTxt").value.trim(); if(t.length < 5){ $("lbMsg").textContent = "Escribí la novedad."; return; } $("lbMsg").textContent = ""; viAbrir(null, "nota", {texto:t, imp:$("lbImp").checked}); };
+document.addEventListener("click", async e => { const b = e.target.closest("[data-lbborrar]"); if(!b) return; if(!confirm("¿Borrar esta novedad del libro?")) return;
+  b.disabled = true; try{ await rpc("turno_nota_borrar",{p_clave:clave,p_id:Number(b.dataset.lbborrar)}); }catch(err){} cargar(); });
 function arrancar(intento){ if(!(clave && yo)) return; $("lNom").value = yo; $("lErr").textContent = intento ? "Conectando… (reintento "+intento+")" : "";
   rpc("objetos_listar",{p_clave:clave}).then(d => {
     if(d.error==="clave") return salir("La clave no es correcta. Pedila en la oficina.");
     if(d.error) return setTimeout(() => arrancar((intento||0)+1), 15000);
-    turnosV = d.turnos||turnosV; if(d.rol){ rol=d.rol; st.set("obj_rol",rol); } items = d.items||[]; entrar(); })
+    turnosV = d.turnos||turnosV; notasT = d.notas_turno||notasT; if(d.rol){ rol=d.rol; st.set("obj_rol",rol); } items = d.items||[]; entrar(); })
   .catch(() => setTimeout(() => arrancar((intento||0)+1), 10000)); }
 arrancar(0);
-setInterval(() => { const f = document.activeElement; if(f && f.closest && f.closest("#lista,#vCargar,#vAyuda,#mVi,#aLista,#aForm") && /INPUT|SELECT/.test(f.tagName)) return; if(clave && !$("vPanel").classList.contains("hidden")) cargar(); }, 15000);
+setInterval(() => { const f = document.activeElement; if(f && f.closest && f.closest("#lista,#vCargar,#vAyuda,#mVi,#aLista,#aForm,#vLibro") && /INPUT|SELECT/.test(f.tagName)) return; if(clave && !$("vPanel").classList.contains("hidden")) cargar(); }, 15000);
 </script>
 </body>
 </html>
