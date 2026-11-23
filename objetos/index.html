@@ -578,6 +578,20 @@ function pintarLibro(){
 $("lbBtn").onclick = () => { const t = $("lbTxt").value.trim(); if(t.length < 5){ $("lbMsg").textContent = "Escribí la novedad."; return; } $("lbMsg").textContent = ""; viAbrir(null, "nota", {texto:t, imp:$("lbImp").checked}); };
 document.addEventListener("click", async e => { const b = e.target.closest("[data-lbborrar]"); if(!b) return; if(!confirm("¿Borrar esta novedad del libro?")) return;
   b.disabled = true; try{ await rpc("turno_nota_borrar",{p_clave:clave,p_id:Number(b.dataset.lbborrar)}); }catch(err){} cargar(); });
+/* ---------- Versión: latido y actualización sola ---------- */
+const VERSION = "2026-11-23a";
+function latido(){ if(clave) rpc("panel_latido",{p_clave:clave,p_pc:yo,p_version:VERSION}).catch(()=>{}); }
+setInterval(latido, 5*60000); setTimeout(latido, 5000);
+async function buscarVersion(){
+  try{
+    const r = await fetch(location.pathname + "?v=" + Date.now(), {cache:"no-store"}); const t = await r.text();
+    const m = t.match(/const VERSION = "([^"]+)"/); if(!m || m[1] === VERSION) return;
+    const ocupado = () => sonando || !$("mVi").classList.contains("hidden") || (document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName));
+    if(ocupado()) return;
+    window.__saliendo = true; location.reload();
+  }catch(e){}
+}
+setInterval(buscarVersion, 10*60000);
 function arrancar(intento){ if(!(clave && yo)) return; $("lNom").value = yo; $("lErr").textContent = intento ? "Conectando… (reintento "+intento+")" : "";
   rpc("objetos_listar",{p_clave:clave}).then(d => {
     if(d.error==="clave") return salir("La clave no es correcta. Pedila en la oficina.");
