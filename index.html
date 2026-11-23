@@ -451,11 +451,12 @@ function mostrar(r){
   $("cPlan").textContent = r.plan + (!r.propio ? " · A nombre de " + lindo(r.titular) : "");
   $("cMovil").textContent = "Móvil " + r.movil;
   $("cSaldo").textContent = pesos(r.saldo);
-  $("cCuota").textContent = r.cuota ? pesos(r.cuota) : "—";
+  $("cCuota").textContent = r.plan === "Sin cargo" ? "No paga" : r.cuota ? pesos(r.cuota) : "—";
   const pagos = r.pagos || [];
   $("cUlt").textContent = pagos.length ? pagos[0].f : "—";
-  $("cEstado").innerHTML = alDia ? '<span class="estado ok">✓ Al día</span>' : '<span class="estado warn">● Saldo pendiente</span>';
-  $("cAviso").innerHTML = alDia
+  const sinCargo = r.plan === "Sin cargo";
+  $("cEstado").innerHTML = sinCargo ? '<span class="estado ok">Sin cargo</span>' : alDia ? '<span class="estado ok">✓ Al día</span>' : '<span class="estado warn">● Saldo pendiente</span>';
+  $("cAviso").innerHTML = sinCargo ? '<div class="aviso ok">Este móvil no paga abono.</div>' : alDia
     ? '<div class="aviso ok">¡Gracias por estar al día!' + (mon || r.plan === "Sin cargo" ? '' : ' Seguís recibiendo viajes de la central con normalidad.') + '</div>'
     : avisoDeuda(r);
 
