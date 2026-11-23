@@ -294,6 +294,24 @@
         <button class="btn btn-primary" id="oBtn" type="button">Avisar a la central</button>
         <p class="muted" id="oMsg" style="margin-top:10px"></p>
       </div>
+      <div class="card" id="cardAuto">
+        <h2>Mi auto y mis datos</h2>
+        <p class="muted" style="margin-top:-4px">Así lo tenemos cargado en la empresa.</p>
+        <ul class="list" id="lAuto"></ul>
+        <div id="autoPend"></div>
+        <button class="btn btn-ghost" id="autoEdit" type="button" style="margin-top:10px">¿Cambió algo? Corregilo acá</button>
+        <div id="autoForm" class="hidden">
+          <label for="aPat">Patente</label><input id="aPat" maxlength="12" autocapitalize="characters">
+          <label for="aMod">Modelo y año</label><input id="aMod" maxlength="60" placeholder="Ej.: Cronos 2023">
+          <label for="aLic">Licencia</label><input id="aLic" inputmode="numeric" maxlength="10">
+          <label for="aDom">Domicilio</label><input id="aDom" maxlength="120">
+          <label for="aCel">Celular</label><input id="aCel" inputmode="tel" maxlength="30" placeholder="Ej.: 341 555-1234">
+          <label for="aNota">Algo más que nos quieras aclarar (opcional)</label><input id="aNota" maxlength="300">
+          <button class="btn btn-primary" id="aBtn" type="button">Enviar cambios</button>
+          <p class="muted" style="margin-top:8px">Lo revisamos en la oficina y lo actualizamos en el sistema.</p>
+        </div>
+        <p class="muted" id="aMsg" style="margin-top:8px"></p>
+      </div>
       <div class="card">
         <h2>Choferes de tu móvil</h2>
         <ul class="list" id="lChof"></ul>
@@ -452,6 +470,7 @@ function mostrar(r){
     : `<div class="aviso">Te quedó un saldo pendiente de <b>${pesos(r.saldo)}</b>.</div>`;
 
   pintarChoferes(r);
+  pintarAuto(r);
 
   const msg = `Hola, soy ${lindo(datos.nombre)}, del móvil ${r.movil}. Les aviso que hice una transferencia. Adjunto el comprobante.`;
   $("btnWa").href = `https://wa.me/${WA}?text=${encodeURIComponent(msg)}`;
@@ -540,6 +559,30 @@ $("btnSalir").addEventListener("click", salir);
 $("btnSalir2").addEventListener("click", salir);
 $("btnVolver").addEventListener("click", mostrarFlota);
 
+
+/* Mi auto y mis datos: el titular ve lo que tenemos y pide correcciones (las aprueba la oficina) */
+const A_CAMPOS=[["patente","Patente","aPat"],["modelo","Modelo y año","aMod"],["licencia","Licencia","aLic"],["domicilio","Domicilio","aDom"],["celular","Celular","aCel"]];
+function pintarAuto(r){
+  const a = r.auto || {};
+  $("lAuto").innerHTML = A_CAMPOS.map(([k,t]) => `<li><div class="row"><div class="d" style="margin:0">${t}</div><span style="font-weight:600;text-align:right">${a[k] ? esc(a[k]) : '<span class="muted">Sin cargar</span>'}</span></div></li>`).join("");
+  A_CAMPOS.forEach(([k,,id]) => $(id).value = a[k] || "");
+  $("aNota").value = "";
+  $("autoForm").classList.add("hidden"); $("autoEdit").classList.remove("hidden"); $("aMsg").textContent = "";
+  const c = r.cambio;
+  if(c){ const nu = c.nuevo || {}; const lis = A_CAMPOS.filter(([k]) => nu[k]).map(([k,t]) => `${t}: <b>${esc(nu[k])}</b>`).join("<br>");
+    $("autoPend").innerHTML = `<div class="aviso" style="background:var(--celeste-claro);border-color:var(--borde);color:#24385a;margin-top:10px">Ya nos mandaste un cambio y lo estamos revisando.${lis?"<br>"+lis:""}${c.nota?"<br>Nota: "+esc(c.nota):""}</div>`; }
+  else $("autoPend").innerHTML = "";
+}
+$("autoEdit").addEventListener("click", () => { $("autoForm").classList.remove("hidden"); $("autoEdit").classList.add("hidden"); $("aPat").focus(); });
+$("aBtn").addEventListener("click", async () => {
+  const b = $("aBtn"), datosN = {}; A_CAMPOS.forEach(([k,,id]) => datosN[k] = $(id).value.trim());
+  b.disabled = true; $("aMsg").textContent = "Enviando…";
+  try{ const d = await rpc("portal_pedir_cambio",{p_movil:actual.movil,p_dni:sesion.dni,p_datos:datosN,p_nota:$("aNota").value.trim()});
+    if(d && d.ok){ await refrescar(); $("aMsg").textContent = "¡Gracias! Lo revisamos en la oficina y lo actualizamos."; }
+    else $("aMsg").textContent = d && d.error==="sin_cambios" ? "No cambiaste ningún dato." : d && d.error==="limite" ? "Ya mandaste varios cambios hoy. Si es urgente, escribinos por WhatsApp." : "No se pudo enviar. Probá de nuevo.";
+  }catch(e){ $("aMsg").textContent = "No se pudo enviar. Revisá la conexión y probá de nuevo."; }
+  b.disabled = false;
+});
 /* Choferes del móvil: los carga el titular o la oficina */
 function pintarChoferes(r){
   const ch = (r.choferes || []).filter(c => c && typeof c === "object");
@@ -548,7 +591,7 @@ function pintarChoferes(r){
   const msg = `Hola, soy ${lindo(datos.nombre)}, del móvil ${r.movil}. Les mando la foto con los choferes de mi móvil para que los carguen.`;
   $("chFoto").href = `https://wa.me/${WA}?text=${encodeURIComponent(msg)}`;
 }
-async function refrescar(){ const d = await rpc("portal_ingresar",{p_movil:sesion.movil,p_dni:sesion.dni}); if(d && !d.error){ datos = d; const r = movilDe(actual.movil); if(r){ actual = r; pintarChoferes(r); } } }
+async function refrescar(){ const d = await rpc("portal_ingresar",{p_movil:sesion.movil,p_dni:sesion.dni}); if(d && !d.error){ datos = d; const r = movilDe(actual.movil); if(r){ actual = r; pintarChoferes(r); pintarAuto(r); } } }
 $("chBtn").addEventListener("click", async () => {
   const n = $("chNom").value.trim();
   if(n.length < 3){ $("chMsg").textContent = "Poné el nombre y apellido."; return; }
