@@ -117,6 +117,8 @@
         <div class="g2"><label>Desde<input id="afDes" maxlength="200"></label><label>Hasta<input id="afHas" maxlength="200"></label></div>
         <label>Detalle (día, hora, quién autoriza…)<input id="afDet" maxlength="300"></label>
         <label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="afFue" style="width:auto"> Fuera de horario</label>
+        <label style="display:flex;gap:8px;align-items:center;margin-top:6px"><input type="checkbox" id="afIyv" style="width:auto"> Ida y vuelta</label>
+        <label style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap"><input type="checkbox" id="afPed" style="width:auto"> A pedido (sin día ni hora fijos) <span id="afPedH" class="hidden" style="display:inline-flex;gap:6px;align-items:center">· válida hasta <input type="date" id="afPedF" style="width:auto"></span></label>
         <button class="b pri" style="margin-top:12px;padding:12px 18px" id="afBtn">Guardar</button> <span class="m" id="afMsg"></span>
       </div>
       <div class="grid" id="aLista"></div>
@@ -488,8 +490,9 @@ const sinTilde = t => String(t||"").toLowerCase().normalize("NFD").replace(/[̀-
 const horaCorta = t => { const d = new Date(t); return pad2(d.getHours())+":"+pad2(d.getMinutes()); };
 function tarjetaAut(a){
   const pend = a.estado==="pendiente", hecho = a.estado==="hecho";
+  const ped = !!a.a_pedido_hasta, pedF = ped ? a.a_pedido_hasta.split("-").reverse().slice(0,2).join("/") : "", pedVen = ped && new Date(a.a_pedido_hasta+"T23:59:59") < new Date();
   const est = pend ? `<span class="tag abierto">Pendiente</span>` : hecho ? `<span class="tag ok">Hecho${a.movil?" · móvil "+esc(a.movil):""}</span>` : `<span class="tag fin">Anulado</span>`;
-  let h = `<div class="it" style="border-left:5px solid ${pend?"#0b3d91":"#b9c6d8"}${pend?"":";opacity:.8"}"><div class="top"><span><span class="tag ok">AUTORIZADO</span> ${est}${a.fuera?' <span class="tag abierto" style="background:#fdecea;color:#b3261e">Fuera de horario</span>':""}${a.origen==="A mano"?` <span class="tag">A mano${a.cargado_por?" · "+esc(a.cargado_por):""}</span>`:""}</span></div>
+  let h = `<div class="it" style="border-left:5px solid ${pend?"#0b3d91":"#b9c6d8"}${pend?"":";opacity:.8"}"><div class="top"><span><span class="tag ok">AUTORIZADO</span> ${est}${a.fuera?' <span class="tag abierto" style="background:#fdecea;color:#b3261e">Fuera de horario</span>':""}${a.origen==="A mano"?` <span class="tag">A mano${a.cargado_por?" · "+esc(a.cargado_por):""}</span>`:""}${a.ida_vuelta?' <span class="tag" style="background:#0b3d91;color:#fff">IDA Y VUELTA</span>':""}${ped?(pedVen?` <span class="tag fin">A pedido · venció el ${pedF}</span>`:` <span class="tag" style="background:#e3ecfa;color:#0b3d91;font-weight:700">VIGENTE A PEDIDO hasta el ${pedF}</span>`):""}</span></div>
     <div class="obj">${esc(a.asunto||"(sin asunto)")}</div>
     ${a.desde?`<div style="font-weight:600;margin-top:4px">De ${esc(a.desde)} a ${esc(a.hasta||"?")}</div>`:""}
     ${a.texto && a.texto!==a.asunto?`<div class="d">${esc(a.texto)}</div>`:""}
@@ -499,7 +502,7 @@ function tarjetaAut(a){
   const notas = a.notas||[]; if(notas.length) h += `<div class="notas">${notas.map(n=>`💬 ${esc(n.t)} <span class="m">— ${esc(n.quien)}, ${fecha(n.at)}</span>`).join("<br>")}</div>`;
   h += `<div class="acc">`;
   if(pend){
-    h += `<button class="b pri" data-ahecho="${esc(a.id)}">✔ Viaje hecho</button><button class="b" data-aprog="${esc(a.id)}">📅 Es para más tarde</button><button class="b" data-anota="${esc(a.id)}">Nota</button><button class="b" data-aanul="${esc(a.id)}">Anular</button>`;
+    h += ped ? `<button class="b pri" data-ahecho="${esc(a.id)}" data-aped="1">✔ Anotar un viaje hecho</button><button class="b" data-afin="${esc(a.id)}">Terminada</button><button class="b" data-aprog` : `<button class="b pri" data-ahecho="${esc(a.id)}">✔ Viaje hecho</button><button class="b" data-aprog="${esc(a.id)}">📅 Es para más tarde</button><button class="b" data-anota="${esc(a.id)}">Nota</button><button class="b" data-aanul="${esc(a.id)}">Anular</button>`;
   } else h += `<button class="b" data-apend="${esc(a.id)}">Volver a pendiente</button><button class="b" data-anota="${esc(a.id)}">Nota</button>`;
   h += `</div><div class="hidden" id="ain-${esc(a.id)}" style="margin-top:8px"></div></div>`;
   return h;
@@ -513,12 +516,13 @@ function pintarAut(){
   $("aLista").innerHTML = L.length ? L.map(tarjetaAut).join("") : `<div class="vacio">${ver==="pend"?"No hay autorizaciones pendientes. ✅":"No hay nada acá."}</div>`;
 }
 $("aBus").addEventListener("input", pintarAut); $("aVer").addEventListener("change", pintarAut);
+$("afPed").addEventListener("change", e => { $("afPedH").classList.toggle("hidden", !e.target.checked); if(e.target.checked && !$("afPedF").value){ const d = new Date(); d.setDate(d.getDate() + ((7 - d.getDay()) % 7 || 7)); $("afPedF").value = `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; } });
 $("aNueva").addEventListener("click", () => { $("aForm").classList.toggle("hidden"); $("afPac").focus(); });
 $("afBtn").addEventListener("click", async () => {
   const pac = $("afPac").value.trim(); if(!pac){ $("afMsg").textContent = "Poné el nombre del paciente."; return; }
   $("afBtn").disabled = true;
-  try{ const d = await rpc("autoriz_cargar",{p_clave:clave,p_quien:st.get("obj_vi_nom")||yo,p_paciente:pac,p_centro:$("afCen").value.trim(),p_desde:$("afDes").value.trim(),p_hasta:$("afHas").value.trim(),p_detalle:$("afDet").value.trim(),p_fuera:$("afFue").checked});
-    if(d.ok){ ["afPac","afCen","afDes","afHas","afDet"].forEach(i=>$(i).value=""); $("afFue").checked=false; $("aForm").classList.add("hidden"); $("afMsg").textContent=""; await cargar(); }
+  try{ const d = await rpc("autoriz_cargar",{p_clave:clave,p_quien:st.get("obj_vi_nom")||yo,p_paciente:pac,p_centro:$("afCen").value.trim(),p_desde:$("afDes").value.trim(),p_hasta:$("afHas").value.trim(),p_detalle:$("afDet").value.trim(),p_fuera:$("afFue").checked,p_ida_vuelta:$("afIyv").checked,p_a_pedido_hasta:$("afPed").checked ? ($("afPedF").value||null) : null});
+    if(d.ok){ ["afPac","afCen","afDes","afHas","afDet"].forEach(i=>$(i).value=""); $("afFue").checked=false; $("afIyv").checked=false; $("afPed").checked=false; $("afPedF").value=""; $("afPedH").classList.add("hidden"); $("aForm").classList.add("hidden"); $("afMsg").textContent=""; await cargar(); }
     else $("afMsg").textContent = "No se pudo guardar.";
   }catch(e){ $("afMsg").textContent = "Sin conexión."; }
   $("afBtn").disabled = false;
@@ -526,9 +530,10 @@ $("afBtn").addEventListener("click", async () => {
 async function aAccion(id, o){ try{ await rpc("autoriz_accion",Object.assign({p_clave:clave,p_id:id,p_estado:null,p_movil:null,p_nota:null,p_recordar:null,p_quitar_recordar:false,p_quien:st.get("obj_vi_nom")||yo},o)); }catch(e){} await cargar(); }
 function aCaja(id, html){ const b = document.getElementById("ain-"+id); if(!b) return null; b.innerHTML = html; b.classList.remove("hidden"); const i = b.querySelector("input"); if(i) i.focus(); return b; }
 document.addEventListener("click", e => {
-  const t = e.target.closest("[data-ahecho],[data-aprog],[data-anota],[data-aanul],[data-apend],[data-aok]"); if(!t) return;
+  const t = e.target.closest("[data-ahecho],[data-aprog],[data-anota],[data-aanul],[data-apend],[data-aok],[data-afin]"); if(!t) return;
   const ds = t.dataset;
-  if(ds.ahecho) aCaja(ds.ahecho, `<div class="g2"><input placeholder="Móvil que hizo el viaje (opcional)" inputmode="numeric" maxlength="6"><button class="b pri" data-aok="hecho|${esc(ds.ahecho)}">Confirmar viaje hecho</button></div>`);
+  if(ds.ahecho) aCaja(ds.ahecho, `${ds.aped?'<p class="m" style="margin-bottom:4px">Queda anotado y la autorización sigue vigente para los próximos viajes.</p>':""}<div class="g2"><input placeholder="Móvil que hizo el viaje (opcional)" inputmode="numeric" maxlength="6"><button class="b pri" data-aok="${ds.aped?"hped":"hecho"}|${esc(ds.ahecho)}">Confirmar viaje hecho</button></div>`);
+  if(ds.afin) aCaja(ds.afin, `<div class="g2"><input placeholder="Nota (opcional, ej.: ya hizo la ida y la vuelta)" maxlength="300"><button class="b pri" data-aok="fin|${esc(ds.afin)}">Dar por terminada</button></div>`);
   if(ds.aprog){ const ahora = new Date(Date.now()+36e5); const DS = ["dom","lun","mar","mié","jue","vie","sáb"];
     const dias = [...Array(8)].map((_,i) => { const d = new Date(); d.setDate(d.getDate()+i); const v = `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; return `<option value="${v}">${i===0?"Hoy":i===1?"Mañana":DS[d.getDay()]} ${pad2(d.getDate())}/${pad2(d.getMonth()+1)}</option>`; }).join("");
     const horas = [...Array(24)].map((_,h) => `<option value="${pad2(h)}"${h===ahora.getHours()?" selected":""}>${pad2(h)}</option>`).join("");
@@ -539,6 +544,8 @@ document.addEventListener("click", e => {
   if(ds.apend) aAccion(ds.apend, {p_estado:"pendiente", p_nota:"Volvió a pendiente"});
   if(ds.aok){ const i = ds.aok.indexOf("|"), que = ds.aok.slice(0,i), id = ds.aok.slice(i+1); const v = (t.parentElement.querySelector("input")||{}).value||""; t.disabled = true;
     if(que==="hecho") aAccion(id, {p_estado:"hecho", p_movil:v, p_quitar_recordar:true, p_nota:"Viaje hecho"+(v?" por el móvil "+v.replace(/\D/g,""):"")});
+    if(que==="hped") aAccion(id, {p_nota:"Viaje hecho"+(v?" por el móvil "+v.replace(/\D/g,""):"")});
+    if(que==="fin") aAccion(id, {p_estado:"hecho", p_quitar_recordar:true, p_nota:"Terminada"+(v.trim()?": "+v.trim():"")});
     if(que==="prog"){ const c = t.parentElement; const d = new Date(c.querySelector(".pDia").value+"T"+c.querySelector(".pHo").value+":"+c.querySelector(".pMi").value+":00");
       if(isNaN(d)){ t.disabled=false; return; } aAccion(id, {p_recordar:d.toISOString(), p_nota:"Programado: avisar el "+fecha(d)}); }
     if(que==="nota"){ if(!v.trim()){ t.disabled=false; return; } aAccion(id, {p_nota:v.trim()}); }
@@ -579,7 +586,7 @@ $("lbBtn").onclick = () => { const t = $("lbTxt").value.trim(); if(t.length < 5)
 document.addEventListener("click", async e => { const b = e.target.closest("[data-lbborrar]"); if(!b) return; if(!confirm("¿Borrar esta novedad del libro?")) return;
   b.disabled = true; try{ await rpc("turno_nota_borrar",{p_clave:clave,p_id:Number(b.dataset.lbborrar)}); }catch(err){} cargar(); });
 /* ---------- Versión: latido y actualización sola ---------- */
-const VERSION = "2026-11-24a";
+const VERSION = "2026-11-24b";
 function latido(){ if(clave) rpc("panel_latido",{p_clave:clave,p_pc:yo,p_version:VERSION}).catch(()=>{}); }
 setInterval(latido, 5*60000); setTimeout(latido, 5000);
 async function buscarVersion(){
