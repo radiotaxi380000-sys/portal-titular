@@ -304,12 +304,12 @@ function turnoPend(){ if(ofi()) return null; const t = turnoActual(); if(new Dat
 function alarma(){
   const nuevos = items.filter(o => !o.visto_en && o.estado==="abierto");
   const venc = ofi() ? [] : vencidos(), tp = turnoPend();
-  const aN = ofi() ? [] : auts.filter(a => !a.visto_en && a.estado==="pendiente");
+  const aN = auts.filter(a => !a.visto_en && a.estado==="pendiente");
   const aR = ofi() ? [] : auts.filter(a => a.estado==="pendiente" && a.recordar_en && new Date(a.recordar_en) <= new Date());
   sonando = nuevos.length > 0 || venc.length > 0 || !!tp || aN.length > 0 || aR.length > 0;
   const box = $("alarma"); box.classList.toggle("hidden", !sonando);
   const fila = (izq, btn) => `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0">${izq}${btn}</div>`;
-  let h = aN.map(a => fila(`<div><b style="font-size:17px">🚙 Nueva autorización: ${esc(a.asunto||a.texto||"")}</b><br><span style="opacity:.9;font-size:13px">${a.desde?"De "+esc(a.desde)+" a "+esc(a.hasta||"?")+" · ":""}${a.fuera?"FUERA DE HORARIO · ":""}${fecha(a.recibido)}</span></div>`, `<button class="b" data-avisto="${esc(a.id)}">LO VI</button>`)).join("");
+  let h = aN.map(a => fila(`<div><b style="font-size:17px">🚙 Nueva autorización: ${esc(a.asunto||a.texto||"")}</b><br><span style="opacity:.9;font-size:13px">${a.desde?"De "+esc(a.desde)+" a "+esc(a.hasta||"?")+" · ":""}${a.fuera?"FUERA DE HORARIO · ":""}${fecha(a.recibido)}</span></div>`, ofi() ? `<span style="font-size:13px;font-weight:600;background:rgba(255,255,255,.18);border-radius:8px;padding:8px 10px">⏳ Esperando que un operador toque LO VI · llegó hace ${Math.max(0,Math.round((Date.now()-new Date(a.recibido))/60000))} min</span>` : `<button class="b" data-avisto="${esc(a.id)}">LO VI</button>`)).join("");
   h += aR.map(a => fila(`<div><b style="font-size:17px">📅 Es la hora del viaje autorizado: ${esc(a.asunto||"")}</b><br><span style="opacity:.9;font-size:13px">${a.desde?"De "+esc(a.desde)+" a "+esc(a.hasta||"?")+" · ":""}Lo programó ${esc(a.recordar_por||"")}</span></div>`, `<button class="b" data-arecok="${esc(a.id)}">YA LO ATENDÍ</button>`)).join("");
   h += nuevos.map(o => fila(`<div><b style="font-size:17px">🚨 ${o.tipo==="perdido"?"Pasajero busca":"Chofer encontró"}: ${esc(o.objeto)}</b><br><span style="opacity:.9;font-size:13px">#${o.nro} · ${esc(o.origen)}${o.movil?" · Móvil "+esc(o.movil):""} · ${fecha(o.creado)}</span></div>`, `<button class="b" data-visto="${o.id}">LO VI</button>`)).join("");
   h += venc.map(o => fila(`<div><b style="font-size:17px">⏰ Volver a preguntar${o.movil?" al móvil "+esc(o.movil):""}: ${esc(o.objeto)}</b><br><span style="opacity:.9;font-size:13px">#${o.nro} · Recordatorio que dejó ${esc(o.recordar_por||"")}</span></div>`, `<button class="b" data-recok="${o.id}">YA PREGUNTÉ</button>`)).join("");
@@ -579,7 +579,7 @@ $("lbBtn").onclick = () => { const t = $("lbTxt").value.trim(); if(t.length < 5)
 document.addEventListener("click", async e => { const b = e.target.closest("[data-lbborrar]"); if(!b) return; if(!confirm("¿Borrar esta novedad del libro?")) return;
   b.disabled = true; try{ await rpc("turno_nota_borrar",{p_clave:clave,p_id:Number(b.dataset.lbborrar)}); }catch(err){} cargar(); });
 /* ---------- Versión: latido y actualización sola ---------- */
-const VERSION = "2026-11-23a";
+const VERSION = "2026-11-24a";
 function latido(){ if(clave) rpc("panel_latido",{p_clave:clave,p_pc:yo,p_version:VERSION}).catch(()=>{}); }
 setInterval(latido, 5*60000); setTimeout(latido, 5000);
 async function buscarVersion(){
