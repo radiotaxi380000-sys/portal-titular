@@ -61,14 +61,19 @@
 <main>
   <div class="card login" id="vLogin">
     <h2 style="font-size:18px">Ingresar</h2>
-    <p class="m" style="margin-top:4px">Para la cobranza y la central.</p>
-    <label>¿Quién sos?<input id="lNom" placeholder="Ej.: Claudio" maxlength="40"></label>
-    <label>Clave<input id="lClave" type="password"></label>
-    <button class="b pri" style="width:100%;margin-top:14px;padding:12px" id="lBtn">Entrar</button>
+    <p class="m" style="margin-top:4px">Entrá con tu nombre y tu contraseña personal (la misma de LO VI).</p>
+    <button class="b pri" style="width:100%;margin-top:14px;padding:14px;font-size:16px" id="lPer">👤 Entrar con mi usuario</button>
     <p class="err" id="lErr"></p>
+    <p style="text-align:center;margin:8px 0 0"><a href="#" id="lGenL" style="font-size:13px;color:#5b6b85">Entrar con la clave general</a></p>
+    <div id="lGen" class="hidden">
+    <label>¿Quién sos?<input id="lNom" placeholder="Ej.: Claudio" maxlength="40"></label>
+    <label>Clave general<input id="lClave" type="password"></label>
+    <button class="b" style="width:100%;margin-top:14px;padding:12px" id="lBtn">Entrar</button>
+    </div>
   </div>
 
   <div id="vPanel" class="hidden">
+    <div id="quienT" class="hidden" style="background:#0b3d91;color:#fff;border-radius:14px;padding:12px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><b style="font-size:16px">🔄 Empezó el turno <span id="quienTn"></span></b><br><span style="font-size:13px;opacity:.9">¿Quién está en esta PC? Entrá con tu usuario así todo queda a tu nombre.</span></div><button class="b" style="background:#fff;color:#0b3d91;border-color:#fff;font-weight:700" id="quienB">👤 Soy yo / cambiar usuario</button></div>
     <div id="alarma" class="hidden" style="background:#c0392b;color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px;animation:lat 1s infinite alternate"></div>
     <div id="sonidoOff" class="hidden" style="background:#fdecea;border:1px solid #f5c2bd;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:14px">🔇 El sonido está desactivado en esta PC. <button class="b pri" id="actSon">Activar sonido</button></div>
     <div id="avisar" class="hidden" style="background:#1e8449;color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px"></div>
@@ -196,13 +201,19 @@ async function cargar(){
   }catch(e){}
 }
 function salir(msg){ clave=""; st.set("obj_clave",""); $("vPanel").classList.add("hidden"); $("vLogin").classList.remove("hidden"); $("lErr").textContent = msg||""; }
+$("lGenL").addEventListener("click", e => { e.preventDefault(); $("lGen").classList.toggle("hidden"); });
+$("lPer").addEventListener("click", () => viAbrir(null, "entrar"));
+function quienCheck(){ const q = $("quienT"); if(!q) return; const pend = !!clave && !ofi() && !$("vPanel").classList.contains("hidden") && st.get("obj_turno_login") !== turnoActual().key;
+  q.classList.toggle("hidden", !pend); if(pend) $("quienTn").textContent = turnoActual().nombre; }
+setInterval(quienCheck, 20000);
+$("quienB").addEventListener("click", () => viAbrir(null, "cambio"));
 $("lBtn").addEventListener("click", async () => {
   const c = $("lClave").value, n = $("lNom").value.trim();
   if(!n){ $("lErr").textContent = "Poné tu nombre."; return; }
   try{ const d = await rpc("objetos_listar",{p_clave:c}); if(d.error){ $("lErr").textContent = d.error==="limite"?"Demasiados intentos. Esperá unos minutos.":"Clave incorrecta."; return; }
     clave=c; yo=n; st.set("obj_clave",c); st.set("obj_yo",n); turnosV = d.turnos||turnosV; notasT = d.notas_turno||notasT; if(d.rol){ rol=d.rol; st.set("obj_rol",rol); } items=d.items||[]; entrar(); }catch(e){ $("lErr").textContent = "Sin conexión."; }
 });
-function entrar(){ cargarAut().then(()=>pintar()); $("vLogin").classList.add("hidden"); $("vPanel").classList.remove("hidden"); $("yo").innerHTML = "👤 "+esc(yo)+' · <a href="#" id="sal" style="color:#fff">salir</a>'; $("sal").onclick = e => { e.preventDefault(); if(!ofi() && !confirm("Si salís, el panel deja de sonar hasta que alguien vuelva a entrar con la clave. ¿Salir igual?")) return; salir(); }; pintar(); }
+function entrar(){ cargarAut().then(()=>pintar()); $("vLogin").classList.add("hidden"); $("vPanel").classList.remove("hidden"); $("yo").innerHTML = "👤 "+esc(yo)+(ofi()?"":' · <a href="#" id="camb" style="color:#fff">cambiar usuario</a>')+' · <a href="#" id="sal" style="color:#fff">salir</a>'; if($("camb")) $("camb").onclick = e => { e.preventDefault(); viAbrir(null, "cambio"); }; setTimeout(quienCheck, 0); $("sal").onclick = e => { e.preventDefault(); if(!ofi() && !confirm("Si salís, el panel deja de sonar hasta que alguien vuelva a entrar con la clave. ¿Salir igual?")) return; salir(); }; pintar(); }
 
 function coincide(p, e){ // sugerencia: un encontrado parecido a un perdido
   if(e.estado!=="abierto"||e.tipo!=="encontrado") return false;
@@ -323,9 +334,9 @@ function alarma(){
 let viId = null, viPaso = 1, viModo = "visto", viTurno = null;
 function viAbrir(id, modo, turno){ viId = id; viPaso = 1; viModo = modo||"visto"; viTurno = turno||null;
   const esA = viModo==="aut" || viModo==="autrec"; const o = esA ? auts.find(x=>x.id===id) : items.find(x=>x.id===id);
-  $("mViTit").textContent = viModo==="nota" ? "📓 ¿Quién anota?" : viModo==="turno" ? "🔄 ¿Quién toma el turno?" : viModo==="recor" ? "⏰ ¿Quién volvió a preguntar?" : viModo==="autrec" ? "📅 ¿Quién atiende el viaje?" : "👁 ¿Quién lo vio?";
+  $("mViTit").textContent = viModo==="entrar" ? "👤 Entrar" : viModo==="cambio" ? "👤 ¿Quién está en este turno?" : viModo==="nota" ? "📓 ¿Quién anota?" : viModo==="turno" ? "🔄 ¿Quién toma el turno?" : viModo==="recor" ? "⏰ ¿Quién volvió a preguntar?" : viModo==="autrec" ? "📅 ¿Quién atiende el viaje?" : "👁 ¿Quién lo vio?";
   $("mViNotaBox").classList.toggle("hidden", viModo!=="recor" && viModo!=="autrec"); $("mViNota").value = "";
-  $("mViObj").textContent = viModo==="nota" ? "“" + (viTurno && viTurno.texto || "") + "”" : viModo==="turno" ? "Confirmá que leíste lo pendiente del turno anterior." : !o ? "" : esA ? `🚙 ${o.asunto||""}` : `#${o.nro} · ${o.objeto}`; $("mViNom").value = st.get("obj_vi_nom"); $("mViPass").value = ""; $("mViN1").value = ""; $("mViN2").value = "";
+  $("mViObj").textContent = viModo==="entrar" ? "Tu nombre y tu contraseña personal." : viModo==="cambio" ? "Turno " + turnoActual().nombre + "." : viModo==="nota" ? "“" + (viTurno && viTurno.texto || "") + "”" : viModo==="turno" ? "Confirmá que leíste lo pendiente del turno anterior." : !o ? "" : esA ? `🚙 ${o.asunto||""}` : `#${o.nro} · ${o.objeto}`; $("mViNom").value = viModo==="cambio" ? "" : (st.get("obj_vi_nom") || ""); $("mViPass").value = ""; $("mViN1").value = ""; $("mViN2").value = "";
   $("mViP1").classList.remove("hidden"); $("mViP2").classList.add("hidden"); $("mViErr").textContent = ""; $("mVi").classList.remove("hidden");
   setTimeout(() => ($("mViNom").value ? $("mViPass") : $("mViNom")).focus(), 50); }
 function viCerrar(){ $("mVi").classList.add("hidden"); viId = null; }
@@ -335,13 +346,17 @@ async function viOk(){
   if(viPaso === 2){ nueva = $("mViN1").value; if(nueva !== $("mViN2").value) return $("mViErr").textContent = "Las dos contraseñas no coinciden.";
     if(nueva.length < 4 || nueva === "1234") return $("mViErr").textContent = "Tiene que tener al menos 4 caracteres y no puede ser 1234."; }
   $("mViOk").disabled = true; $("mViErr").textContent = "";
-  try{ const d = viModo==="nota" ? await rpc("turno_nota_agregar",{p_clave:clave,p_texto:viTurno.texto,p_importante:viTurno.imp,p_nombre:nom,p_pass:pass,p_nueva:nueva})
+  try{ const d = (viModo==="entrar" || viModo==="cambio") ? await rpc("objetos_entrar",{p_nombre:nom,p_pass:pass,p_nueva:nueva})
+      : viModo==="nota" ? await rpc("turno_nota_agregar",{p_clave:clave,p_texto:viTurno.texto,p_importante:viTurno.imp,p_nombre:nom,p_pass:pass,p_nueva:nueva})
       : viModo==="turno" ? await rpc("objetos_turno_ok",{p_clave:clave,p_turno:viTurno.key,p_pendientes:viTurno.n,p_nombre:nom,p_pass:pass,p_nueva:nueva})
       : viModo==="recor" ? await rpc("objetos_recordatorio_ok",{p_clave:clave,p_id:viId,p_nombre:nom,p_pass:pass,p_nueva:nueva,p_nota:$("mViNota").value.trim()})
       : viModo==="aut" ? await rpc("autoriz_visto",{p_clave:clave,p_id:viId,p_nombre:nom,p_pass:pass,p_nueva:nueva})
       : viModo==="autrec" ? await rpc("autoriz_recordatorio_ok",{p_clave:clave,p_id:viId,p_nombre:nom,p_pass:pass,p_nueva:nueva,p_nota:$("mViNota").value.trim()})
       : await rpc("objetos_visto_usr",{p_clave:clave,p_id:viId,p_nombre:nom,p_pass:pass,p_nueva:nueva});
     if(d.cambiar){ viPaso = 2; $("mViP1").classList.add("hidden"); $("mViP2").classList.remove("hidden"); setTimeout(()=>$("mViN1").focus(),50); }
+    else if(d.ok && (viModo==="entrar" || viModo==="cambio")){ const nm = d.nombre||nom; st.set("obj_vi_nom", nm); st.set("obj_yo", nm); st.set("obj_turno_login", turnoActual().key); yo = nm;
+      if(viModo==="entrar"){ clave = d.clave; st.set("obj_clave", clave); rol = "operador"; st.set("obj_rol", rol); viCerrar(); arrancar(); }
+      else { viCerrar(); entrar(); } quienCheck(); }
     else if(d.ok){ st.set("obj_vi_nom", d.nombre||nom); if(viModo==="nota"){ $("lbTxt").value=""; $("lbImp").checked=false; $("lbMsg").textContent="✓ Guardado."; } viCerrar(); cargar(); }
     else $("mViErr").textContent = ({pass:"Contraseña incorrecta. Si te la olvidaste, pedile a Daniel que te la blanquee.",nuevo:"No te encuentro. Si es tu primera vez, la contraseña es 1234.",nueva:"Tiene que tener al menos 4 caracteres y no puede ser 1234.",limite:"Demasiados intentos. Esperá unos minutos.",nombre:"Poné tu nombre.",clave:"La clave del panel cambió."})[d.error] || "No se pudo. Probá de nuevo.";
   }catch(err){ $("mViErr").textContent = "Sin conexión. Probá de nuevo."; }
@@ -502,7 +517,7 @@ function tarjetaAut(a){
   const notas = a.notas||[]; if(notas.length) h += `<div class="notas">${notas.map(n=>`💬 ${esc(n.t)} <span class="m">— ${esc(n.quien)}, ${fecha(n.at)}</span>`).join("<br>")}</div>`;
   h += `<div class="acc">`;
   if(pend){
-    h += ped ? `<button class="b pri" data-ahecho="${esc(a.id)}" data-aped="1">✔ Anotar un viaje hecho</button><button class="b" data-afin="${esc(a.id)}">Terminada</button><button class="b" data-aprog` : `<button class="b pri" data-ahecho="${esc(a.id)}">✔ Viaje hecho</button><button class="b" data-aprog="${esc(a.id)}">📅 Es para más tarde</button><button class="b" data-anota="${esc(a.id)}">Nota</button><button class="b" data-aanul="${esc(a.id)}">Anular</button>`;
+    h += ped ? `<button class="b pri" data-ahecho="${esc(a.id)}" data-aped="1">✔ Anotar un viaje hecho</button><button class="b" data-afin="${esc(a.id)}">Terminada</button><button class="b" data-anota="${esc(a.id)}">Nota</button><button class="b" data-aanul="${esc(a.id)}">Anular</button>` : `<button class="b pri" data-ahecho="${esc(a.id)}">✔ Viaje hecho</button><button class="b" data-aprog="${esc(a.id)}">📅 Es para más tarde</button><button class="b" data-anota="${esc(a.id)}">Nota</button><button class="b" data-aanul="${esc(a.id)}">Anular</button>`;
   } else h += `<button class="b" data-apend="${esc(a.id)}">Volver a pendiente</button><button class="b" data-anota="${esc(a.id)}">Nota</button>`;
   h += `</div><div class="hidden" id="ain-${esc(a.id)}" style="margin-top:8px"></div></div>`;
   return h;
@@ -586,7 +601,7 @@ $("lbBtn").onclick = () => { const t = $("lbTxt").value.trim(); if(t.length < 5)
 document.addEventListener("click", async e => { const b = e.target.closest("[data-lbborrar]"); if(!b) return; if(!confirm("¿Borrar esta novedad del libro?")) return;
   b.disabled = true; try{ await rpc("turno_nota_borrar",{p_clave:clave,p_id:Number(b.dataset.lbborrar)}); }catch(err){} cargar(); });
 /* ---------- Versión: latido y actualización sola ---------- */
-const VERSION = "2026-11-24b";
+const VERSION = "2026-11-25a";
 function latido(){ if(clave) rpc("panel_latido",{p_clave:clave,p_pc:yo,p_version:VERSION}).catch(()=>{}); }
 setInterval(latido, 5*60000); setTimeout(latido, 5000);
 async function buscarVersion(){
