@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Taxi 380mil · Portal de empresas</title>
+<meta name="description" content="Portal de empresas con cuenta corriente en Taxi 380mil: todos los viajes de tu empresa, con detalle.">
+<meta name="theme-color" content="#0b3d91">
+<meta name="robots" content="noindex">
+<link rel="icon" href="../icono-192.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--azul:#0b3d91;--azul2:#1f6fe0;--celeste:#e8f1fd;--borde:#d6e2f3;--texto:#14233d;--suave:#5b6b85;--rojo:#c0392b;--verde:#1e8449}
+*{box-sizing:border-box;margin:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#f3f7fc;color:var(--texto);min-height:100vh}
+.hero{background:radial-gradient(700px 320px at 90% 0%,#2a7cf0 0%,var(--azul) 55%,#06275f 100%);color:#fff;padding:20px 20px 58px;position:relative;overflow:hidden}
+.dam{position:absolute;right:-10px;top:0;bottom:0;width:70px;background:repeating-conic-gradient(#fff 0 25%,transparent 0 50%) 0 0/26px 26px;opacity:.13}
+.top{display:flex;align-items:center;gap:12px;max-width:900px;margin:0 auto}.top img{width:44px;height:44px;border-radius:50%;background:#fff}
+.top b{display:block;font-size:17px}.top small{opacity:.85;font-size:13px}
+.top .salir{margin-left:auto;color:#fff;opacity:.85;font-size:14px;background:none;border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:6px 12px;cursor:pointer;font:inherit}
+.hero h1{font-size:25px;line-height:1.2;margin:18px auto 0;max-width:900px}
+.hero p{opacity:.9;margin:6px auto 0;font-size:15px;max-width:900px}
+main{max-width:900px;margin:-40px auto 0;padding:0 14px 30px;position:relative}
+.card{background:#fff;border:1px solid var(--borde);border-radius:18px;padding:16px;box-shadow:0 6px 20px rgba(11,61,145,.08);margin-bottom:12px}
+h2{font-size:17px;margin-bottom:4px}.sub{color:var(--suave);font-size:14px;line-height:1.45}
+input,select{border:1.5px solid var(--borde);border-radius:12px;padding:11px 12px;font:inherit;font-size:16px;background:#fbfdff;color:var(--texto)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:12px 16px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;text-decoration:none}
+.pri{background:var(--azul);color:#fff}.sec{background:var(--celeste);color:var(--azul)}
+.login{max-width:420px;margin:0 auto}
+.login input{width:100%;margin-top:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;text-align:center;font-size:20px}
+.login .btn{width:100%;margin-top:10px;padding:15px}
+.err{color:var(--rojo);font-size:14px;margin-top:8px;min-height:18px}
+.hidden{display:none!important}
+.barra{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.barra .bus{flex:1;min-width:180px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.kpi{background:var(--celeste);border-radius:14px;padding:12px}
+.kpi b{display:block;font-size:24px;color:var(--azul);line-height:1.1}.kpi span{font-size:13px;color:var(--suave)}
+.tabs{display:flex;gap:6px;margin:4px 0 10px}
+.tabs button{border:1.5px solid var(--borde);background:#fff;border-radius:999px;padding:7px 14px;font:inherit;font-size:14px;font-weight:600;color:var(--suave);cursor:pointer}
+.tabs button.on{background:var(--azul);border-color:var(--azul);color:#fff}
+.via{border-top:1px solid #eef3fa;padding:12px 2px;display:grid;grid-template-columns:1fr auto;gap:4px 12px}
+.via:first-child{border-top:0}
+.via .q{font-weight:700;font-size:16px}
+.via .r{font-size:14.5px;line-height:1.4}
+.via .m{color:var(--suave);font-size:13px}
+.via .imp{font-weight:800;font-size:17px;text-align:right;white-space:nowrap}
+.tag{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700;background:var(--celeste);color:var(--azul)}
+.tag.an{background:#f1f3f6;color:#7a8699}.tag.cur{background:#e3ecfa;color:var(--azul2)}
+.anul{opacity:.55}.anul .imp{text-decoration:line-through}
+table{width:100%;border-collapse:collapse;font-size:15px}
+td,th{padding:10px 6px;border-top:1px solid #eef3fa;text-align:left}th{font-size:13px;color:var(--suave);font-weight:600;border-top:0}
+td.n{text-align:right;font-weight:700;white-space:nowrap}
+.vacio{color:var(--suave);text-align:center;padding:26px 10px}
+.pie{text-align:center;color:var(--suave);font-size:13px;line-height:1.6;margin-top:14px}
+.pie a{color:var(--azul);font-weight:600}
+@media(max-width:560px){.kpis{grid-template-columns:1fr 1fr}.kpis .kpi:last-child{grid-column:1/-1}.kpi b{font-size:21px}}
+</style>
+</head>
+<body>
+<div class="hero"><div class="dam"></div>
+  <div class="top"><img src="../icono-192.png" alt=""><div><b>Taxi 380mil</b><small>Portal de empresas</small></div><button class="salir hidden" id="salir">Salir</button></div>
+  <h1 id="tit">Los viajes de tu empresa, al detalle</h1>
+  <p id="lead">Quién viajó, de dónde a dónde, en qué móvil y cuánto salió. Todo en un lugar.</p>
+</div>
+<main>
+  <div class="card login" id="vLogin">
+    <h2>Entrar</h2>
+    <p class="sub">Ingresá el código de tu empresa. Si no lo tenés, pedilo por WhatsApp a administración.</p>
+    <input id="lCla" maxlength="30" autocomplete="off" autocapitalize="characters" placeholder="CÓDIGO">
+    <button class="btn pri" id="lBtn">Ver mis viajes</button>
+    <div class="err" id="lErr"></div>
+    <p class="sub" style="text-align:center;margin-top:6px"><a style="color:#0b3d91;font-weight:600" href="https://wa.me/5493413138944?text=Hola%2C%20quiero%20el%20c%C3%B3digo%20del%20portal%20de%20empresas" target="_blank" rel="noopener">💬 Pedir el código</a></p>
+  </div>
+
+  <div class="hidden" id="vPanel">
+    <div class="card">
+      <div class="barra">
+        <select id="mes"></select>
+        <input class="bus" id="bus" placeholder="🔎 Buscar pasajero, dirección o móvil">
+        <button class="btn sec" id="csv">⬇ Bajar Excel</button>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><b id="kTot">$0</b><span>total del mes</span></div>
+        <div class="kpi"><b id="kVia">0</b><span>viajes</span></div>
+        <div class="kpi"><b id="kPas">0</b><span>pasajeros distintos</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="tabs"><button data-t="via" class="on">Viajes</button><button data-t="pas">Por pasajero</button></div>
+      <div id="lista"></div>
+    </div>
+    <p class="sub" style="text-align:center;padding:0 10px">Se muestran los viajes con cupón digital. La factura del mes llega por mail, como siempre.</p>
+  </div>
+
+  <div class="pie">¿Dudas con algún viaje? <a href="https://wa.me/5493413138944" target="_blank" rel="noopener">WhatsApp de administración · 341 313-8944</a><br><b>Taxi 380mil</b> · Pueyrredón 382, Rosario · taxis 24 hs: <a href="tel:+543414380000">341 4-380.000</a></div>
+</main>
+<script>
+const SB = "https://muemdhlrsjlmxvfraljp.supabase.co/rest/v1/rpc/", KEY = "sb_publishable_WMpo3vPv2NDR5Ms_QEDHyQ_ATzkn46l";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const rpc = (fn, b) => fetch(SB + fn, {method:"POST", headers:{apikey:KEY, Authorization:"Bearer "+KEY, "Content-Type":"application/json"}, body:JSON.stringify(b)}).then(r => r.json());
+const st = { get:k => { try{ return localStorage.getItem(k); }catch(e){ return null; } }, set:(k,v) => { try{ v==null ? localStorage.removeItem(k) : localStorage.setItem(k,v); }catch(e){} } };
+const plata = n => "$" + Math.round(Number(n)||0).toLocaleString("es-AR");
+const fch = t => { const d = new Date(t); return d.toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit"}) + " " + d.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit",hour12:false}); };
+const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const nomMes = m => { const [a,b] = m.split("-"); return MESES[+b-1].replace(/^./, c => c.toUpperCase()) + " " + a; };
+const sinT = t => String(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+let clave = "", datos = null, tab = "via";
+
+const q = new URLSearchParams(location.search);
+if(q.get("c")){ st.set("emp_cla", q.get("c")); history.replaceState(null, "", location.pathname); }
+clave = st.get("emp_cla") || "";
+
+async function cargar(mes){
+  const d = await rpc("empresa_portal", {p_clave:clave, p_mes:mes || null});
+  if(d.error){ salir(d.error === "limite" ? "Demasiados intentos. Esperá unos minutos." : "El código no es correcto."); return; }
+  datos = d; st.set("emp_cla", clave);
+  $("vLogin").classList.add("hidden"); $("vPanel").classList.remove("hidden"); $("salir").classList.remove("hidden");
+  $("tit").textContent = d.empresa; $("lead").textContent = "Todos los viajes de tu empresa con cupón digital de Taxi 380mil.";
+  const act = mes || new Date(d.desde).toISOString().slice(0,7), ms = [...new Set([act, ...(d.meses||[])])].sort().reverse();
+  const hoy = new Date(); const esteMes = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,"0")}`; if(!ms.includes(esteMes)) ms.unshift(esteMes);
+  $("mes").innerHTML = ms.map(m => `<option value="${m}"${m===act?" selected":""}>${nomMes(m)}</option>`).join("");
+  pintar();
+}
+function salir(msg){ st.set("emp_cla", null); clave = ""; datos = null; $("vPanel").classList.add("hidden"); $("vLogin").classList.remove("hidden"); $("salir").classList.add("hidden");
+  $("tit").textContent = "Los viajes de tu empresa, al detalle"; $("lErr").textContent = msg || ""; }
+const validos = () => (datos.viajes||[]).filter(v => v.estado !== "anulado");
+function filtrados(){ const b = sinT($("bus").value.trim()); return (datos.viajes||[]).filter(v => !b || sinT([v.pasajero,v.origen,v.destino,v.movil,v.codigo,v.obs].join(" ")).includes(b)); }
+function pintar(){
+  if(!datos) return;
+  const V = validos();
+  $("kTot").textContent = plata(V.reduce((t,v) => t + (Number(v.importe)||0), 0));
+  $("kVia").textContent = V.length;
+  $("kPas").textContent = new Set(V.map(v => sinT(v.pasajero).trim()).filter(Boolean)).size;
+  const L = filtrados();
+  if(tab === "via"){
+    $("lista").innerHTML = L.length ? L.map(v => { const an = v.estado === "anulado", cur = !an && v.estado !== "cerrado";
+      return `<div class="via${an?" anul":""}"><div><div class="q">${esc(v.pasajero||"(sin nombre)")} ${an?'<span class="tag an">Anulado</span>':cur?'<span class="tag cur">En curso</span>':""}</div>
+        <div class="r">${esc(v.origen||"?")} → ${esc(v.destino||"?")}</div>
+        <div class="m">${fch(v.pedido)}${v.movil?" · Móvil "+esc(v.movil):""}${v.chofer?" · "+esc(v.chofer):""} · Cupón ${esc(v.codigo)}${v.por?" · pidió "+esc(v.por):""}${v.obs?"<br>📝 "+esc(v.obs):""}</div></div>
+        <div class="imp">${v.importe!=null?plata(v.importe):"—"}</div></div>`; }).join("")
+      : `<div class="vacio">${(datos.viajes||[]).length ? "No hay viajes con esa búsqueda." : "Todavía no hay viajes en este mes."}</div>`;
+  } else {
+    const G = {}; L.filter(v => v.estado !== "anulado").forEach(v => { const k = (v.pasajero||"(sin nombre)").trim(), g = G[sinT(k)] || (G[sinT(k)] = {n:k, c:0, t:0}); g.c++; g.t += Number(v.importe)||0; });
+    const A = Object.values(G).sort((a,b) => b.t - a.t);
+    $("lista").innerHTML = A.length ? `<table><tr><th>Pasajero</th><th style="text-align:right">Viajes</th><th style="text-align:right">Total</th></tr>${A.map(g => `<tr><td>${esc(g.n)}</td><td class="n">${g.c}</td><td class="n">${plata(g.t)}</td></tr>`).join("")}</table>` : `<div class="vacio">No hay viajes.</div>`;
+  }
+}
+function bajar(){
+  if(!datos) return;
+  const cel = s => { s = String(s ?? ""); if(/^[=+\-@]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g,'""') + '"'; };
+  const filas = [["Fecha","Hora","Pasajero","Origen","Destino","Móvil","Chofer","Cupón","Pidió","Estado","Importe"]].concat(
+    (datos.viajes||[]).slice().reverse().map(v => { const d = new Date(v.pedido); return [d.toLocaleDateString("es-AR"), d.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit",hour12:false}), v.pasajero, v.origen, v.destino, v.movil, v.chofer, v.codigo, v.por, v.estado==="anulado"?"Anulado":v.estado==="cerrado"?"Hecho":"En curso", v.estado==="anulado" ? "" : (v.importe ?? "")]; }));
+  const csv = "﻿" + filas.map(r => r.map(cel).join(";")).join("\r\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv;charset=utf-8"}));
+  a.download = `Viajes ${datos.empresa} - ${nomMes($("mes").value)}.csv`; document.body.appendChild(a); a.click(); a.remove();
+}
+$("lBtn").onclick = () => { const c = $("lCla").value.trim(); if(!c){ $("lErr").textContent = "Ingresá el código."; return; } clave = c; $("lErr").textContent = ""; $("lBtn").disabled = true; cargar().catch(() => $("lErr").textContent = "No hay conexión.").finally(() => $("lBtn").disabled = false); };
+$("lCla").addEventListener("keydown", e => { if(e.key === "Enter") $("lBtn").click(); });
+$("mes").onchange = () => cargar($("mes").value);
+$("bus").oninput = pintar;
+$("csv").onclick = bajar;
+$("salir").onclick = () => salir();
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { tab = b.dataset.t; document.querySelectorAll(".tabs button").forEach(x => x.classList.toggle("on", x === b)); pintar(); });
+if(clave) cargar().catch(() => {});
+</script>
+</body>
+</html>
