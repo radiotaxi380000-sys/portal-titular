@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Taxi 380mil · Compartí tu viaje</title>
+<meta name="description" content="Compartí tu viaje en Taxi 380mil: tu familia ve por dónde vas y sabe cuándo llegaste.">
+<meta name="theme-color" content="#0b3d91">
+<link rel="icon" href="../icono-192.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--azul:#0b3d91;--azul2:#1f6fe0;--celeste:#e8f1fd;--borde:#d6e2f3;--texto:#14233d;--suave:#5b6b85;--rojo:#c0392b;--verde:#1e8449}
+*{box-sizing:border-box;margin:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#f3f7fc;color:var(--texto);min-height:100vh}
+.hero{background:radial-gradient(600px 300px at 90% 0%,#2a7cf0 0%,var(--azul) 55%,#06275f 100%);color:#fff;padding:22px 20px 60px;position:relative;overflow:hidden}
+.dam{position:absolute;right:-10px;top:0;bottom:0;width:70px;background:repeating-conic-gradient(#fff 0 25%,transparent 0 50%) 0 0/26px 26px;opacity:.13}
+.marca{display:flex;align-items:center;gap:12px}.marca img{width:46px;height:46px;border-radius:50%;background:#fff}
+.marca b{display:block;font-size:18px}.marca small{opacity:.85;font-size:13px}
+.hero h1{font-size:25px;line-height:1.2;margin-top:18px}
+.hero p{opacity:.9;margin-top:6px;font-size:15px}
+main{max-width:520px;margin:-40px auto 0;padding:0 14px 30px;position:relative}
+.card{background:#fff;border:1px solid var(--borde);border-radius:18px;padding:16px;box-shadow:0 6px 20px rgba(11,61,145,.08);margin-bottom:12px}
+h2{font-size:17px;margin-bottom:4px}.sub{color:var(--suave);font-size:14px;line-height:1.45}
+label{display:block;font-size:14px;font-weight:600;margin-top:12px;color:var(--suave)}
+input{width:100%;border:1.5px solid var(--borde);border-radius:12px;padding:12px;font:inherit;font-size:16px;margin-top:6px;background:#fbfdff;color:var(--texto)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;padding:16px 12px;font:inherit;font-weight:700;font-size:17px;text-decoration:none;cursor:pointer;width:100%;margin-top:12px}
+.pri{background:var(--azul);color:#fff}.sec{background:var(--celeste);color:var(--azul)}.wa{background:#1e8449;color:#fff}
+.btn:disabled{opacity:.6}
+.pasos{display:grid;gap:10px;margin-top:12px}
+.paso{display:flex;gap:12px;align-items:flex-start;font-size:14.5px;line-height:1.4}
+.paso i{font-style:normal;flex:none;width:30px;height:30px;border-radius:50%;background:var(--celeste);color:var(--azul);font-weight:800;display:flex;align-items:center;justify-content:center}
+.vivo{display:flex;align-items:center;gap:10px;background:#eaf7ef;border:1px solid #bfe5cc;color:#145a32;border-radius:14px;padding:12px 14px;font-weight:700}
+.punto{width:12px;height:12px;border-radius:50%;background:#1e8449;flex:none;animation:lat 1.2s infinite}
+@keyframes lat{0%{box-shadow:0 0 0 0 rgba(30,132,73,.6)}100%{box-shadow:0 0 0 12px rgba(30,132,73,0)}}
+.aviso{background:#fdecea;border:1px solid #f5c2bd;color:#8e2a20;border-radius:12px;padding:12px;font-size:14px;line-height:1.45;margin-top:10px}
+.info{background:var(--celeste);border-radius:12px;padding:12px;font-size:14px;line-height:1.45;margin-top:10px;color:var(--azul)}
+.err{color:var(--rojo);font-size:14px;margin-top:8px;min-height:18px}
+.hidden{display:none!important}
+.listo{text-align:center;padding:10px 0}.listo .g{font-size:54px}
+.pie{text-align:center;color:var(--suave);font-size:13px;line-height:1.6;margin-top:14px}
+a.ln{color:var(--azul);font-weight:600}
+</style>
+</head>
+<body>
+<div class="hero"><div class="dam"></div>
+  <div class="marca"><img src="../icono-192.png" alt=""><div><b>Taxi 380mil</b><small>En Rosario desde 1980</small></div></div>
+  <h1>📍 Compartí tu viaje</h1>
+  <p>Que alguien de confianza vea por dónde vas y sepa cuándo llegaste.</p>
+</div>
+<main>
+  <!-- 1. Antes de empezar -->
+  <div class="card" id="vIni">
+    <h2>¿Cómo funciona?</h2>
+    <div class="pasos">
+      <div class="paso"><i>1</i><span>Tocás <b>Empezar</b> y permitís la ubicación.</span></div>
+      <div class="paso"><i>2</i><span>Le mandás el link por WhatsApp a quien quieras.</span></div>
+      <div class="paso"><i>3</i><span>Esa persona ve el recorrido en el mapa, sin instalar nada.</span></div>
+      <div class="paso"><i>4</i><span>Al llegar tocás <b>Llegué bien</b> y se le avisa.</span></div>
+    </div>
+    <label>Tu nombre<input id="iNom" maxlength="40" autocomplete="given-name" placeholder="Ej.: Laura"></label>
+    <label>Número de móvil (está en el auto)<input id="iMov" maxlength="6" inputmode="numeric" placeholder="Ej.: 245"></label>
+    <label>¿A dónde vas? (opcional)<input id="iDes" maxlength="120" placeholder="Ej.: casa, Hospital Centenario…"></label>
+    <button class="btn pri" id="bEmp">▶ Empezar a compartir</button>
+    <div class="err" id="eIni"></div>
+    <p class="sub" style="margin-top:6px">Usa el GPS de tu celular, solo mientras dura el viaje. El link deja de funcionar solo.</p>
+  </div>
+
+  <!-- 2. Compartiendo -->
+  <div class="card hidden" id="vAct">
+    <div class="vivo"><span class="punto"></span><span id="sVivo">Compartiendo tu ubicación…</span></div>
+    <button class="btn wa" id="bWa">💬 Mandar el link por WhatsApp</button>
+    <button class="btn sec hidden" id="bShare">📤 Compartir por otra app</button>
+    <div class="info">📱 <b>Dejá esta pantalla abierta</b> hasta llegar. Si bloqueás el celular o cambiás de app, la ubicación se pausa y vuelve cuando regresás.</div>
+    <div class="aviso hidden" id="eGps"></div>
+    <button class="btn pri" id="bLle" style="background:#1e8449">✅ Llegué bien</button>
+    <button class="btn sec" id="bCan" style="background:#f3f5f9;color:#5b6b85;font-size:15px;padding:12px">Dejar de compartir</button>
+  </div>
+
+  <!-- 3. Llegó -->
+  <div class="card hidden" id="vFin">
+    <div class="listo"><div class="g">🏁</div><h2 style="font-size:20px">¡Qué bueno que llegaste!</h2>
+    <p class="sub" style="margin-top:6px">Quien tenga el link ya ve el aviso de que llegaste bien. Tu ubicación dejó de compartirse.</p></div>
+    <button class="btn wa" id="bWaLle">💬 Avisar también por WhatsApp</button>
+    <a class="btn sec" href="../v/">Volver</a>
+  </div>
+
+  <div class="pie">¿Necesitás un taxi? <a class="ln" href="tel:+543414380000">341 4-380.000</a><br><b>Taxi 380mil</b> · las 24 hs</div>
+</main>
+<script>
+const SB = "https://muemdhlrsjlmxvfraljp.supabase.co/rest/v1/rpc/", KEY = "sb_publishable_WMpo3vPv2NDR5Ms_QEDHyQ_ATzkn46l";
+const $ = id => document.getElementById(id);
+const rpc = (fn, b) => fetch(SB + fn, {method:"POST", headers:{apikey:KEY, Authorization:"Bearer "+KEY, "Content-Type":"application/json"}, body:JSON.stringify(b)}).then(r => r.json());
+const st = { get:k => { try{ return localStorage.getItem(k); }catch(e){ return null; } }, set:(k,v) => { try{ v==null ? localStorage.removeItem(k) : localStorage.setItem(k,v); }catch(e){} } };
+const q = new URLSearchParams(location.search);
+$("iMov").value = (q.get("m") || "").replace(/\D/g,"").slice(0,6);
+$("iNom").value = st.get("vc_nom") || "";
+
+let viaje = null, watch = null, ultEnvio = 0, ultPos = 0, lock = null, tic = null;
+try{ const g = JSON.parse(st.get("vc_viaje") || "null"); if(g && g.id && Date.now() - g.t < 6*36e5) viaje = g; }catch(e){}
+const link = () => location.origin + location.pathname.replace(/viaje\/?(index\.html)?$/, "") + "seguir/?v=" + viaje.id;
+const texto = () => `Voy en un Taxi 380mil${viaje.movil ? " (móvil " + viaje.movil + ")" : ""}${viaje.destino ? " hacia " + viaje.destino : ""}. Podés ver por dónde voy acá: ${link()}`;
+
+function mostrar(v){ ["vIni","vAct","vFin"].forEach(x => $(x).classList.toggle("hidden", x !== v)); scrollTo(0,0); }
+async function despierto(){ try{ if("wakeLock" in navigator && !lock && document.visibilityState === "visible"){ lock = await navigator.wakeLock.request("screen"); lock.addEventListener("release", () => lock = null); } }catch(e){} }
+document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && viaje){ despierto(); pedirUna(); } });
+
+function enviar(p){
+  ultPos = Date.now(); $("eGps").classList.add("hidden");
+  if(Date.now() - ultEnvio < 8000) return; ultEnvio = Date.now();
+  rpc("viaje_pos", {p_id:viaje.id, p_clave:viaje.clave, p_lat:p.coords.latitude, p_lng:p.coords.longitude, p_acc:Math.round(p.coords.accuracy||0)})
+    .then(d => { if(d && d.error === "fin"){ terminar(true); } }).catch(() => {});
+}
+function errGps(e){
+  const m = e && e.code === 1 ? "No diste permiso de ubicación. Tocá el candado o el ícono de ubicación arriba, en la barra del navegador, y elegí <b>Permitir</b>. Después recargá la página."
+    : "No se pudo leer el GPS. Revisá que la ubicación del celular esté activada.";
+  $("eGps").innerHTML = "⚠️ " + m; $("eGps").classList.remove("hidden");
+}
+function pedirUna(){ navigator.geolocation.getCurrentPosition(enviar, () => {}, {enableHighAccuracy:true, maximumAge:5000, timeout:15000}); }
+function arrancar(){
+  mostrar("vAct");
+  if(navigator.share) $("bShare").classList.remove("hidden");
+  watch = navigator.geolocation.watchPosition(enviar, errGps, {enableHighAccuracy:true, maximumAge:5000, timeout:30000});
+  despierto();
+  clearInterval(tic); tic = setInterval(() => {
+    const s = Math.round((Date.now() - ultPos)/1000);
+    $("sVivo").textContent = !ultPos ? "Buscando tu ubicación…" : s < 20 ? "Compartiendo tu ubicación en vivo" : "Última ubicación hace " + (s < 120 ? s + " s" : Math.round(s/60) + " min");
+    if(Date.now() - ultEnvio > 30000) pedirUna();
+  }, 3000);
+}
+function terminar(llego){
+  if(watch != null) navigator.geolocation.clearWatch(watch); watch = null; clearInterval(tic);
+  try{ lock && lock.release(); }catch(e){}
+  st.set("vc_viaje", null);
+  if(llego) mostrar("vFin"); else { viaje = null; mostrar("vIni"); }
+}
+
+$("bEmp").onclick = () => {
+  const nom = $("iNom").value.trim();
+  if(!nom){ $("eIni").textContent = "Poné tu nombre, así quien lo reciba sabe que sos vos."; $("iNom").focus(); return; }
+  if(!navigator.geolocation){ $("eIni").textContent = "Este navegador no permite compartir la ubicación."; return; }
+  st.set("vc_nom", nom); $("eIni").textContent = ""; $("bEmp").disabled = true; $("bEmp").textContent = "Pidiendo permiso de ubicación…";
+  navigator.geolocation.getCurrentPosition(async p => {
+    try{
+      const d = await rpc("viaje_crear", {p_movil:$("iMov").value, p_nombre:nom, p_destino:$("iDes").value.trim()});
+      if(!d || !d.id) throw 0;
+      viaje = {id:d.id, clave:d.clave, movil:$("iMov").value.replace(/\D/g,""), destino:$("iDes").value.trim(), nombre:nom, t:Date.now()};
+      st.set("vc_viaje", JSON.stringify(viaje)); ultEnvio = 0; enviar(p); arrancar();
+    }catch(e){ $("eIni").textContent = "No hay conexión. Probá de nuevo."; }
+    $("bEmp").disabled = false; $("bEmp").textContent = "▶ Empezar a compartir";
+  }, e => { $("bEmp").disabled = false; $("bEmp").textContent = "▶ Empezar a compartir";
+    $("eIni").innerHTML = e.code === 1 ? "Para compartir el viaje tenés que <b>permitir la ubicación</b>. Tocá el candado arriba, en la barra del navegador, elegí Permitir y probá de nuevo." : "No se pudo leer el GPS. Revisá que la ubicación del celular esté activada y probá de nuevo."; },
+  {enableHighAccuracy:true, timeout:20000});
+};
+$("bWa").onclick = () => { window.open("https://wa.me/?text=" + encodeURIComponent(texto()), "_blank"); };
+$("bShare").onclick = () => { navigator.share({title:"Mi viaje en Taxi 380mil", text:texto()}).catch(() => {}); };
+$("bLle").onclick = async () => { $("bLle").disabled = true; try{ await rpc("viaje_llegue", {p_id:viaje.id, p_clave:viaje.clave}); }catch(e){} $("bLle").disabled = false; terminar(true); };
+$("bCan").onclick = async () => { if(!confirm("¿Dejar de compartir? Quien tenga el link deja de ver tu ubicación.")) return; try{ await rpc("viaje_cortar", {p_id:viaje.id, p_clave:viaje.clave}); }catch(e){} terminar(false); };
+$("bWaLle").onclick = () => { window.open("https://wa.me/?text=" + encodeURIComponent("¡Llegué bien! 🙌 (Taxi 380mil)"), "_blank"); };
+if(viaje) arrancar();
+</script>
+</body>
+</html>

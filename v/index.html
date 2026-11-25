@@ -64,6 +64,8 @@ textarea{min-height:80px;resize:vertical}
     </div>
   </div>
 
+  <a class="card fila" id="compartir" href="../viaje/" style="border:2px solid #9cc3f5;background:linear-gradient(135deg,#fff,#eef5ff)"><span class="ic" style="background:#0b3d91;color:#fff">📍</span><span><b>Compartí tu viaje</b><small>Que tu familia vea por dónde vas y sepa cuándo llegaste</small></span><span class="fl">›</span></a>
+
   <div class="card">
     <button class="fila" id="contacto"><span class="ic">💾</span><span><b>Guardar nuestro número</b><small>Así nos tenés a mano la próxima vez</small></span><span class="fl">›</span></button>
     <a class="fila" id="olvide" href="../perdi/"><span class="ic">🎒</span><span><b>Me olvidé algo en el auto</b><small>Te ayudamos a recuperarlo</small></span><span class="fl">›</span></a>
@@ -96,7 +98,7 @@ const rpc = (fn, b) => fetch(SB + fn, {method:"POST", headers:{apikey:KEY, Autho
 const q = new URLSearchParams(location.search);
 const M = (q.get("m") || "").replace(/\D/g, "").slice(0, 6);
 if(M){ $("waAdm").href = "https://wa.me/5493413138944?text=" + encodeURIComponent("Hola, les escribo desde el QR del móvil " + M);
-  $("nm").textContent = M; $("chip").classList.remove("hidden"); $("olvide").href = "../perdi/?m=" + M;
+  $("nm").textContent = M; $("chip").classList.remove("hidden"); $("olvide").href = "../perdi/?m=" + M; $("compartir").href = "../viaje/?m=" + M;
   $("waPedir").href = "https://wa.me/543414380000?text=" + encodeURIComponent("Hola, quiero pedir un taxi (vi el QR del móvil " + M + ")"); }
 try{ rpc("pasajero_visita", {p_movil: M}); }catch(e){}
 if(M) rpc("calco_ra", {p_movil: M}).then(d => { if(d && d.ra) $("nra").textContent = " · R.A. " + d.ra; }).catch(()=>{});

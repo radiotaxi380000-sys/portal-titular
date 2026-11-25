@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Taxi 380mil · Seguí el viaje</title>
+<meta name="description" content="Seguí en vivo un viaje en Taxi 380mil.">
+<meta name="theme-color" content="#0b3d91">
+<meta name="robots" content="noindex">
+<link rel="icon" href="../icono-192.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<style>
+:root{--azul:#0b3d91;--celeste:#e8f1fd;--borde:#d6e2f3;--texto:#14233d;--suave:#5b6b85;--verde:#1e8449}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--texto);display:flex;flex-direction:column;background:#f3f7fc}
+header{background:linear-gradient(135deg,#1f6fe0,var(--azul) 60%,#06275f);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px;flex:none}
+header img{width:38px;height:38px;border-radius:50%;background:#fff}
+header b{display:block;font-size:16px}header small{opacity:.88;font-size:13px}
+#mapa{flex:1;min-height:260px;background:#dfe8f3}
+.panel{flex:none;background:#fff;border-top:1px solid var(--borde);padding:12px 14px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -6px 20px rgba(11,61,145,.08)}
+.est{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15.5px}
+.punto{width:12px;height:12px;border-radius:50%;background:var(--verde);flex:none;animation:lat 1.2s infinite}
+.punto.gris{background:#9aa8bd;animation:none}
+@keyframes lat{0%{box-shadow:0 0 0 0 rgba(30,132,73,.6)}100%{box-shadow:0 0 0 12px rgba(30,132,73,0)}}
+.det{color:var(--suave);font-size:14px;margin-top:4px;line-height:1.4}
+.llego{background:#eaf7ef;border:1px solid #bfe5cc;color:#145a32;border-radius:14px;padding:12px 14px;font-weight:700;font-size:16px;margin-bottom:8px}
+.acc{display:flex;gap:8px;margin-top:10px}
+.acc a{flex:1;text-align:center;text-decoration:none;font-weight:700;font-size:14px;border-radius:12px;padding:11px 8px;background:var(--celeste);color:var(--azul)}
+.hidden{display:none!important}
+.fin{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:30px;color:var(--suave);line-height:1.5}
+.fin b{display:block;color:var(--texto);font-size:19px;margin:8px 0 4px}
+.auto{font-size:30px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+</style>
+</head>
+<body>
+<header><img src="../icono-192.png" alt=""><div><b id="tit">Viaje en Taxi 380mil</b><small id="sub">Seguimiento en vivo</small></div></header>
+<div id="mapa"></div>
+<div class="panel" id="panel">
+  <div class="llego hidden" id="llego"></div>
+  <div class="est"><span class="punto" id="pto"></span><span id="est">Cargando…</span></div>
+  <div class="det" id="det"></div>
+  <div class="acc"><a id="gm" href="#" target="_blank" rel="noopener">🗺️ Abrir en Google Maps</a><a href="tel:+543414380000">📞 Taxi 380mil</a></div>
+</div>
+<div class="fin hidden" id="fin"><div>🚕<b id="finT">Este seguimiento terminó</b>Ya no se comparte la ubicación de este viaje.<br><br><a href="tel:+543414380000" style="color:#0b3d91;font-weight:700">¿Necesitás un taxi? 341 4-380.000</a></div></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+const SB = "https://muemdhlrsjlmxvfraljp.supabase.co/rest/v1/rpc/", KEY = "sb_publishable_WMpo3vPv2NDR5Ms_QEDHyQ_ATzkn46l";
+const $ = id => document.getElementById(id);
+const esc = s => String(s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const rpc = (fn, b) => fetch(SB + fn, {method:"POST", headers:{apikey:KEY, Authorization:"Bearer "+KEY, "Content-Type":"application/json"}, body:JSON.stringify(b)}).then(r => r.json());
+const ID = (new URLSearchParams(location.search).get("v") || "").replace(/[^a-f0-9]/g,"").slice(0,40);
+const hora = t => new Date(t).toLocaleTimeString("es-AR", {hour:"2-digit", minute:"2-digit", hour12:false});
+let mapa = null, linea = null, marca = null, siguiendo = true, centrado = false, desfase = 0, ult = null, tmr = null;
+
+function iniMapa(){
+  if(mapa || !window.L) return;
+  mapa = L.map("mapa", {zoomControl:true}).setView([-32.9468, -60.6393], 13);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:19, attribution:"© OpenStreetMap"}).addTo(mapa);
+  linea = L.polyline([], {color:"#1f6fe0", weight:5, opacity:.8}).addTo(mapa);
+  marca = L.marker([-32.9468, -60.6393], {icon:L.divIcon({className:"", html:'<div class="auto">🚕</div>', iconSize:[32,32], iconAnchor:[16,16]})});
+  mapa.on("dragstart", () => siguiendo = false);
+}
+function terminado(nombre){ clearInterval(tmr); $("mapa").classList.add("hidden"); $("panel").classList.add("hidden"); $("fin").classList.remove("hidden");
+  if(nombre) $("finT").textContent = "El viaje de " + nombre + " ya no se comparte"; }
+
+function pintarEstado(){
+  if(!ult) return;
+  const d = ult;
+  if(d.llego_en){ $("pto").classList.add("gris"); $("est").textContent = "Viaje terminado"; return; }
+  if(!d.actualizado){ $("est").textContent = "Esperando la primera ubicación…"; return; }
+  const s = Math.max(0, Math.round((Date.now() + desfase - new Date(d.actualizado)) / 1000));
+  const viejo = s > 90; $("pto").classList.toggle("gris", viejo);
+  $("est").textContent = !viejo ? "En viaje · ubicación en vivo" : "Última ubicación hace " + (s < 3600 ? Math.round(s/60) + " min" : "más de 1 h");
+  $("det").innerHTML = [d.movil ? "Móvil <b>" + esc(d.movil) + "</b>" : "", d.destino ? "Va hacia: <b>" + esc(d.destino) + "</b>" : "", "Salió " + hora(d.creado)].filter(Boolean).join(" · ")
+    + (viejo ? "<br>Puede tener la pantalla bloqueada o estar sin señal. Se actualiza solo." : "");
+}
+async function cargar(){
+  if(!ID){ terminado(); return; }
+  let d; try{ d = await rpc("viaje_ver", {p_id:ID}); }catch(e){ $("est").textContent = "Sin conexión, reintentando…"; return; }
+  if(!d || d.error){ terminado(d && d.nombre); return; }
+  ult = d; if(d.ahora) desfase = new Date(d.ahora) - Date.now();
+  $("tit").textContent = (d.nombre ? d.nombre + " va" : "Viaje") + " en Taxi 380mil";
+  $("sub").textContent = d.movil ? "Móvil " + d.movil + " · seguimiento en vivo" : "Seguimiento en vivo";
+  document.title = "Taxi 380mil · Viaje de " + (d.nombre || "");
+  iniMapa();
+  const P = d.puntos || [];
+  if(mapa && P.length){
+    linea.setLatLngs(P); const ul = P[P.length-1]; marca.setLatLng(ul); if(!mapa.hasLayer(marca)) marca.addTo(mapa);
+    if(!centrado){ centrado = true; P.length > 1 ? mapa.fitBounds(linea.getBounds(), {padding:[40,40], maxZoom:16}) : mapa.setView(ul, 16); }
+    else if(siguiendo) mapa.panTo(ul);
+    $("gm").href = "https://www.google.com/maps/search/?api=1&query=" + ul[0] + "," + ul[1];
+  }
+  if(d.llego_en){ $("llego").innerHTML = "✅ " + esc(d.nombre || "Llegó") + (d.nombre ? " avisó que llegó bien" : " bien") + " a las " + hora(d.llego_en); $("llego").classList.remove("hidden"); clearInterval(tmr); }
+  pintarEstado();
+}
+cargar(); tmr = setInterval(cargar, 8000); setInterval(pintarEstado, 5000);
+document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && ult && !ult.llego_en) cargar(); });
+</script>
+</body>
+</html>
