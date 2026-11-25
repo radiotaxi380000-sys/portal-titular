@@ -58,7 +58,7 @@ a.ln{color:var(--azul);font-weight:600}
       <div class="paso"><i>4</i><span>Al llegar tocás <b>Llegué bien</b> y se le avisa.</span></div>
     </div>
     <label>Tu nombre<input id="iNom" maxlength="40" autocomplete="given-name" placeholder="Ej.: Laura"></label>
-    <label>Número de móvil (está en el auto)<input id="iMov" maxlength="6" inputmode="numeric" placeholder="Ej.: 245"></label>
+    <label>Número de móvil (opcional)<input id="iMov" maxlength="6" inputmode="numeric" placeholder="Ej.: 245"></label>
     <label>¿A dónde vas? (opcional)<input id="iDes" maxlength="120" placeholder="Ej.: casa, Hospital Centenario…"></label>
     <button class="btn pri" id="bEmp">▶ Empezar a compartir</button>
     <div class="err" id="eIni"></div>
@@ -98,7 +98,7 @@ $("iNom").value = st.get("vc_nom") || "";
 let viaje = null, watch = null, ultEnvio = 0, ultPos = 0, lock = null, tic = null;
 try{ const g = JSON.parse(st.get("vc_viaje") || "null"); if(g && g.id && Date.now() - g.t < 6*36e5) viaje = g; }catch(e){}
 const link = () => location.origin + location.pathname.replace(/viaje\/?(index\.html)?$/, "") + "seguir/?v=" + viaje.id;
-const texto = () => `Voy en un Taxi 380mil${viaje.movil ? " (móvil " + viaje.movil + ")" : ""}${viaje.destino ? " hacia " + viaje.destino : ""}. Podés ver por dónde voy acá: ${link()}`;
+const texto = () => `Estoy compartiendo mi viaje${viaje.destino ? " hacia " + viaje.destino : ""}. Podés ver por dónde voy acá: ${link()}`;
 
 function mostrar(v){ ["vIni","vAct","vFin"].forEach(x => $(x).classList.toggle("hidden", x !== v)); scrollTo(0,0); }
 async function despierto(){ try{ if("wakeLock" in navigator && !lock && document.visibilityState === "visible"){ lock = await navigator.wakeLock.request("screen"); lock.addEventListener("release", () => lock = null); } }catch(e){} }
@@ -152,10 +152,10 @@ $("bEmp").onclick = () => {
   {enableHighAccuracy:true, timeout:20000});
 };
 $("bWa").onclick = () => { window.open("https://wa.me/?text=" + encodeURIComponent(texto()), "_blank"); };
-$("bShare").onclick = () => { navigator.share({title:"Mi viaje en Taxi 380mil", text:texto()}).catch(() => {}); };
+$("bShare").onclick = () => { navigator.share({title:"Mi viaje", text:texto()}).catch(() => {}); };
 $("bLle").onclick = async () => { $("bLle").disabled = true; try{ await rpc("viaje_llegue", {p_id:viaje.id, p_clave:viaje.clave}); }catch(e){} $("bLle").disabled = false; terminar(true); };
 $("bCan").onclick = async () => { if(!confirm("¿Dejar de compartir? Quien tenga el link deja de ver tu ubicación.")) return; try{ await rpc("viaje_cortar", {p_id:viaje.id, p_clave:viaje.clave}); }catch(e){} terminar(false); };
-$("bWaLle").onclick = () => { window.open("https://wa.me/?text=" + encodeURIComponent("¡Llegué bien! 🙌 (Taxi 380mil)"), "_blank"); };
+$("bWaLle").onclick = () => { window.open("https://wa.me/?text=" + encodeURIComponent("¡Llegué bien! 🙌"), "_blank"); };
 if(viaje) arrancar();
 </script>
 </body>
