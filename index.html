@@ -428,7 +428,7 @@ function mostrarFlota(){
   $("fCant").textContent = L.length + " móviles";
   $("fTotal").textContent = pesos(total);
   $("fSaldoBox").classList.toggle("hidden", todosSS);
-  $("fEstado").innerHTML = todosSS ? '' : total <= 0 ? '<span class="estado ok">✓ Todos al día</span>' : '<span class="estado warn">● Hay saldo pendiente</span>';
+  $("fEstado").innerHTML = todosSS ? `<a class="btn btn-ghost" style="margin-top:12px" target="_blank" rel="noopener" href="https://wa.me/${WA}?text=${encodeURIComponent("Hola, soy " + lindo(datos.nombre) + ". ¿Me pasan el estado de cuenta de mis móviles? Gracias.")}">💬 Consultar mi estado de cuenta</a>` : total <= 0 ? '<span class="estado ok">✓ Todos al día</span>' : '<span class="estado warn">● Hay saldo pendiente</span>';
   $("lFlota").innerHTML = L.map(r => { const ok = (Number(r.saldo)||0) <= 0;
     const aNom = !r.propio ? `<div class="d">A nombre de ${esc(lindo(r.titular))}</div>` : "";
     return `<li class="click" data-m="${esc(r.movil)}"><div class="row">
@@ -459,7 +459,7 @@ function mostrar(r){
   const ss = !!r.sin_saldo;
   $("cSaldoBox").classList.toggle("hidden", ss);
   $("cEstado").innerHTML = ss ? '' : sinCargo ? '<span class="estado ok">Sin cargo</span>' : alDia ? '<span class="estado ok">✓ Al día</span>' : '<span class="estado warn">● Saldo pendiente</span>';
-  $("cAviso").innerHTML = ss ? '' : sinCargo ? '<div class="aviso ok">Este móvil no paga abono.</div>' : alDia
+  $("cAviso").innerHTML = ss ? `<a class="btn btn-ghost" style="display:block;text-align:center;margin-top:12px;text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/${WA}?text=${encodeURIComponent("Hola, soy " + lindo(datos.nombre) + ". ¿Me pasan el estado de cuenta del móvil " + r.movil + "? Gracias.")}">💬 Consultar mi estado de cuenta</a>` : sinCargo ? '<div class="aviso ok">Este móvil no paga abono.</div>' : alDia
     ? '<div class="aviso ok">¡Gracias por estar al día!' + (mon || r.plan === "Sin cargo" ? '' : ' Seguís recibiendo viajes de la central con normalidad.') + '</div>'
     : avisoDeuda(r);
 
