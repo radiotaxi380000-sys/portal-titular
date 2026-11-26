@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Novedades · Portal del Titular</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0b3d91">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Novedades 380">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#eef2f8;color:#1b2533;font-size:16px}
+  header{background:#0b3d91;color:#fff;padding:16px 18px calc(16px) 18px;padding-top:calc(16px + env(safe-area-inset-top))}
+  header h1{margin:0;font-size:19px}
+  header p{margin:2px 0 0;opacity:.85;font-size:13px}
+  main{max-width:560px;margin:0 auto;padding:14px 14px 40px}
+  .card{background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  h2{font-size:17px;margin:0 0 10px}
+  label{display:block;font-size:14px;font-weight:600;margin:12px 0 4px;color:#33415a}
+  input,select,textarea{width:100%;font:inherit;padding:11px 12px;border:1px solid #c9d3e3;border-radius:10px;background:#fff}
+  textarea{min-height:110px;resize:vertical}
+  button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:13px 16px;cursor:pointer;background:#0b3d91;color:#fff;width:100%;margin-top:14px}
+  button.alt{background:#e3e9f4;color:#0b3d91}
+  button.min{width:auto;margin:0;padding:8px 12px;font-size:14px}
+  button:disabled{opacity:.6}
+  .row{display:flex;gap:10px}.row>*{flex:1}
+  .msg{margin-top:10px;font-size:14px}.err{color:#b3261e}.ok{color:#1d7a3e}
+  .muted{color:#66738a;font-size:13px}
+  .hidden{display:none!important}
+  .nov{border-top:1px solid #e6ebf3;padding:12px 0}.nov:first-child{border-top:0}
+  .nov b{display:block}.nov .t{white-space:pre-wrap;font-size:14px;margin-top:4px}
+  .nov .meta{font-size:12px;color:#66738a;margin-top:6px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .chip{display:inline-block;background:#e3e9f4;color:#0b3d91;border-radius:20px;padding:2px 9px;font-size:12px;font-weight:600}
+  #imgp{max-width:100%;border-radius:10px;margin-top:8px}
+  .top{display:flex;justify-content:space-between;align-items:center}
+  .top a{color:#fff;font-size:13px;opacity:.9}
+</style>
+</head>
+<body>
+<header><div class="top"><div><h1>Novedades del portal</h1><p id="hola">Radio Taxi 380mil · Portal del Titular</p></div><a href="#" id="salir" class="hidden">Salir</a></div></header>
+<main>
+  <!-- ENTRAR -->
+  <section id="vLogin" class="card">
+    <h2>Entrar</h2>
+    <label for="lNom">Tu nombre</label>
+    <input id="lNom" autocomplete="username" autocapitalize="words">
+    <label for="lPass">Contraseña</label>
+    <input id="lPass" type="password" autocomplete="current-password">
+    <div id="lNuevaBox" class="hidden">
+      <label for="lNueva">Elegí tu contraseña nueva</label>
+      <input id="lNueva" type="password" autocomplete="new-password">
+      <p class="muted">Mínimo 4 caracteres. Es la que vas a usar de ahora en adelante.</p>
+    </div>
+    <button id="lBtn">Entrar</button>
+    <div id="lMsg" class="msg"></div>
+  </section>
+
+  <!-- PUBLICAR -->
+  <section id="vApp" class="hidden">
+    <div class="card">
+      <h2>Publicar una novedad</h2>
+      <label for="fTipo">Tipo</label>
+      <select id="fTipo"><option value="aviso">Aviso general</option><option value="alta">Nueva cuenta corriente</option><option value="baja">Baja de cuenta corriente</option></select>
+      <div id="empBox" class="hidden">
+        <label for="fEmp">Empresa</label>
+        <input id="fEmp" placeholder="Nombre de la empresa">
+      </div>
+      <label for="fTit">Título</label>
+      <input id="fTit" maxlength="120">
+      <label for="fTx">Texto</label>
+      <textarea id="fTx" maxlength="2000"></textarea>
+      <label for="fDest">Para quién</label>
+      <select id="fDest"><option value="todos">Todos los titulares</option><option value="completos">Solo completos</option><option value="monitoreo">Solo monitoreo</option><option value="moviles">Móviles puntuales</option></select>
+      <div id="movBox" class="hidden">
+        <label for="fMov">Números de móvil</label>
+        <input id="fMov" inputmode="numeric" placeholder="Ej.: 123, 456, 789">
+      </div>
+      <div class="row">
+        <div><label for="fFecha">Fecha</label><input id="fFecha" type="date"></div>
+      </div>
+      <label for="fVid">Link de video (opcional)</label>
+      <input id="fVid" inputmode="url" placeholder="https://…">
+      <label>Foto o placa (opcional)</label>
+      <button type="button" class="alt" id="imgBtn" style="margin-top:0">📷 Elegir foto</button>
+      <input id="fImg" type="file" accept="image/*" class="hidden">
+      <img id="imgp" class="hidden" alt="Vista previa">
+      <button type="button" class="alt hidden" id="imgX">Quitar foto</button>
+      <button id="pub">Publicar</button>
+      <div id="pMsg" class="msg"></div>
+    </div>
+    <div class="card">
+      <h2>Publicadas</h2>
+      <div id="lista"><p class="muted">Cargando…</p></div>
+    </div>
+  </section>
+</main>
+<script>
+const SB_URL = "https://muemdhlrsjlmxvfraljp.supabase.co";
+const SB_KEY = "sb_publishable_WMpo3vPv2NDR5Ms_QEDHyQ_ATzkn46l";
+const $ = id => document.getElementById(id);
+const st = {get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}};
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+async function rpc(fn, body){ const r = await fetch(SB_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:SB_KEY,Authorization:"Bearer "+SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(body)}); if(!r.ok) throw new Error("http "+r.status); return r.json(); }
+const hoy = () => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const fmt = f => f ? f.slice(8,10)+"/"+f.slice(5,7)+"/"+f.slice(0,4) : "";
+const TIPO = {aviso:"Aviso",alta:"Nueva cuenta corriente",baja:"Baja de cuenta corriente"};
+const DEST = {todos:"Todos",completos:"Solo completos",monitoreo:"Solo monitoreo",moviles:"Móviles"};
+let token = st.get("nov_token"), nombre = st.get("nov_nombre")||"", img = null, borrarId = null;
+
+/* ---------- Entrar ---------- */
+$("lNom").value = st.get("nov_usr")||"";
+async function entrar(){
+  const nom=$("lNom").value.trim(), pass=$("lPass").value, nueva=$("lNuevaBox").classList.contains("hidden")?"":$("lNueva").value;
+  if(!nom||!pass){$("lMsg").innerHTML='<span class="err">Poné tu nombre y tu contraseña.</span>';return}
+  $("lBtn").disabled=true;$("lMsg").textContent="Entrando…";
+  try{const r=await rpc("nov_entrar",{p_nombre:nom,p_pass:pass,p_nueva:nueva});
+    if(r.cambiar){$("lNuevaBox").classList.remove("hidden");$("lMsg").innerHTML='<span>Es tu primera vez: elegí una contraseña nueva y tocá Entrar.</span>';$("lNueva").focus();return}
+    if(r.error){$("lMsg").innerHTML='<span class="err">'+({pass:"Nombre o contraseña incorrectos.",nueva:"La contraseña nueva tiene que tener al menos 4 caracteres (y no puede ser 1234).",limite:"Demasiados intentos. Esperá unos minutos."}[r.error]||"No se pudo entrar.")+'</span>';return}
+    token=r.token;nombre=r.nombre;st.set("nov_token",token);st.set("nov_nombre",nombre);st.set("nov_usr",nom);$("lPass").value="";$("lNueva").value="";$("lNuevaBox").classList.add("hidden");$("lMsg").textContent="";mostrarApp();
+  }catch(e){$("lMsg").innerHTML='<span class="err">Sin conexión. Probá de nuevo.</span>'}
+  finally{$("lBtn").disabled=false}
+}
+$("lBtn").onclick=entrar;
+["lPass","lNueva"].forEach(id=>$(id).addEventListener("keydown",e=>{if(e.key==="Enter")entrar()}));
+function salir(){token=null;st.set("nov_token",null);$("vApp").classList.add("hidden");$("vLogin").classList.remove("hidden");$("salir").classList.add("hidden");$("hola").textContent="Radio Taxi 380mil · Portal del Titular"}
+$("salir").onclick=e=>{e.preventDefault();salir()};
+function mostrarApp(){$("vLogin").classList.add("hidden");$("vApp").classList.remove("hidden");$("salir").classList.remove("hidden");$("hola").textContent="Hola, "+nombre;if(!$("fFecha").value)$("fFecha").value=hoy();listar()}
+
+/* ---------- Formulario ---------- */
+function tituloAuto(){const t=$("fTipo").value,e=$("fEmp").value.trim();if(!e||$("fTit").dataset.touched)return;
+  if(t==="alta"){$("fTit").value="Nueva cuenta corriente: "+e;if(!$("fTx").value)$("fTx").value="Desde hoy pueden llevar pasajeros de "+e+" con cupón de cuenta corriente."}
+  if(t==="baja")$("fTit").value="Baja de cuenta corriente: "+e}
+$("fTipo").onchange=()=>{$("empBox").classList.toggle("hidden",$("fTipo").value==="aviso");tituloAuto()};
+$("fEmp").oninput=tituloAuto;
+$("fTit").oninput=()=>{$("fTit").dataset.touched=$("fTit").value?"1":""};
+$("fDest").onchange=()=>$("movBox").classList.toggle("hidden",$("fDest").value!=="moviles");
+$("imgBtn").onclick=()=>$("fImg").click();
+function leerImg(f){return new Promise((ok,mal)=>{const r=new FileReader();r.onerror=()=>mal(new Error("No se pudo leer la foto"));r.onload=()=>{const im=new Image();im.onerror=()=>mal(new Error("Ese archivo no es una foto"));im.onload=()=>{
+  const M=1000,k=Math.min(1,M/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);
+  let q=.82,u=c.toDataURL("image/jpeg",q);while(u.length>300000&&q>.4){q-=.12;u=c.toDataURL("image/jpeg",q)}ok(u)};im.src=r.result};r.readAsDataURL(f)})}
+$("fImg").onchange=async()=>{const f=$("fImg").files[0];if(!f)return;try{img=await leerImg(f);$("imgp").src=img;$("imgp").classList.remove("hidden");$("imgX").classList.remove("hidden");$("imgBtn").textContent="📷 Cambiar foto"}catch(e){img=null;$("pMsg").innerHTML='<span class="err">'+esc(e.message)+'</span>'}$("fImg").value=""};
+$("imgX").onclick=()=>{img=null;$("imgp").classList.add("hidden");$("imgp").removeAttribute("src");$("imgX").classList.add("hidden");$("imgBtn").textContent="📷 Elegir foto"};
+
+async function publicar(){
+  const tit=$("fTit").value.trim(),dest=$("fDest").value,vid=$("fVid").value.trim();
+  const ms=dest==="moviles"?$("fMov").value.split(/[\s,;]+/).map(x=>x.replace(/\D/g,"")).filter(Boolean):[];
+  if(!tit){$("pMsg").innerHTML='<span class="err">Poné un título.</span>';$("fTit").focus();return}
+  if(dest==="moviles"&&!ms.length){$("pMsg").innerHTML='<span class="err">Poné los números de móvil.</span>';return}
+  if(vid&&!/^https?:\/\//i.test(vid)){$("pMsg").innerHTML='<span class="err">El video tiene que ser un link (empieza con https://).</span>';return}
+  $("pub").disabled=true;$("pMsg").textContent="Publicando…";
+  try{const r=await rpc("nov_publicar",{p_token:token,p_fecha:$("fFecha").value||hoy(),p_tipo:$("fTipo").value,p_titulo:tit,p_texto:$("fTx").value.trim(),p_destino:dest,p_moviles:ms,p_video:vid||null,p_imagen:img});
+    if(r.error==="sesion"){salir();$("lMsg").innerHTML='<span class="err">Tu sesión venció. Entrá de nuevo.</span>';return}
+    if(r.error){$("pMsg").innerHTML='<span class="err">No se pudo publicar ('+esc(r.error)+').</span>';return}
+    $("pMsg").innerHTML='<span class="ok">✓ Publicada. Ya la ven los titulares en el portal.</span>';
+    ["fTit","fTx","fEmp","fMov","fVid"].forEach(id=>$(id).value="");$("fTit").dataset.touched="";$("fTipo").value="aviso";$("fDest").value="todos";$("empBox").classList.add("hidden");$("movBox").classList.add("hidden");$("fFecha").value=hoy();$("imgX").click();
+    listar();
+  }catch(e){$("pMsg").innerHTML='<span class="err">Sin conexión. Probá de nuevo.</span>'}
+  finally{$("pub").disabled=false}
+}
+$("pub").onclick=publicar;
+
+/* ---------- Lista ---------- */
+async function listar(){
+  try{const r=await rpc("nov_listar",{p_token:token});
+    if(r.error==="sesion"){salir();$("lMsg").innerHTML='<span class="err">Tu sesión venció. Entrá de nuevo.</span>';return}
+    const L=r.items||[];
+    $("lista").innerHTML=L.length?L.map(n=>`<div class="nov"><span class="chip">${esc(TIPO[n.tipo]||n.tipo)}</span><b style="margin-top:6px">${esc(n.titulo)}${n.img?" 🖼️":""}${n.video?" ▶️":""}</b>${n.texto?`<div class="t">${esc(n.texto)}</div>`:""}
+      <div class="meta"><span>${fmt(n.fecha)} · ${esc(DEST[n.destino]||n.destino)}${n.destino==="moviles"?": "+esc((n.moviles||[]).join(", ")):""}${n.creado_por?" · "+esc(n.creado_por):""}</span>
+      <button class="alt min" data-del="${esc(n.id)}">${borrarId===n.id?"¿Seguro? Tocá de nuevo":"Borrar"}</button></div></div>`).join(""):'<p class="muted">Todavía no hay novedades publicadas.</p>';
+  }catch(e){$("lista").innerHTML='<p class="err">No se pudo cargar la lista.</p>'}
+}
+$("lista").addEventListener("click",async e=>{const b=e.target.closest("[data-del]");if(!b)return;const id=b.dataset.del;
+  if(borrarId!==id){borrarId=id;listar();return}
+  borrarId=null;b.disabled=true;try{const r=await rpc("nov_borrar",{p_token:token,p_id:id});if(r.error==="sesion"){salir();return}}catch(err){}listar()});
+
+if(token){nombre=st.get("nov_nombre")||"";mostrarApp()}
+</script>
+</body>
+</html>
