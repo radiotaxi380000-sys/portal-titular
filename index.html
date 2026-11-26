@@ -196,7 +196,7 @@
         <div class="movil">🚙</div>
       </div>
       <div id="fEstado"></div>
-      <div class="saldo"><div class="lbl">Saldo total de tus móviles</div><div class="monto" id="fTotal"></div></div>
+      <div class="saldo" id="fSaldoBox"><div class="lbl">Saldo total de tus móviles</div><div class="monto" id="fTotal"></div></div>
       <div class="alerta hidden" id="fAlerta"></div>
     </div>
     <div class="card">
@@ -220,7 +220,7 @@
         <div class="movil" id="cMovil"></div>
       </div>
       <div id="cEstado"></div>
-      <div class="saldo">
+      <div class="saldo" id="cSaldoBox">
         <div class="lbl">Saldo a pagar</div>
         <div class="monto" id="cSaldo"></div>
       </div>
@@ -423,17 +423,18 @@ function avisoDeuda(r){
 }
 
 function mostrarFlota(){
-  const L = misMoviles.map(movilDe), total = L.reduce((a,r) => a + Math.max(0, Number(r.saldo)||0), 0);
+  const L = misMoviles.map(movilDe), total = L.reduce((a,r) => a + (r.sin_saldo ? 0 : Math.max(0, Number(r.saldo)||0)), 0), todosSS = L.every(r => r.sin_saldo);
   $("fNombre").textContent = lindo(datos.nombre);
   $("fCant").textContent = L.length + " móviles";
   $("fTotal").textContent = pesos(total);
-  $("fEstado").innerHTML = total <= 0 ? '<span class="estado ok">✓ Todos al día</span>' : '<span class="estado warn">● Hay saldo pendiente</span>';
+  $("fSaldoBox").classList.toggle("hidden", todosSS);
+  $("fEstado").innerHTML = todosSS ? '' : total <= 0 ? '<span class="estado ok">✓ Todos al día</span>' : '<span class="estado warn">● Hay saldo pendiente</span>';
   $("lFlota").innerHTML = L.map(r => { const ok = (Number(r.saldo)||0) <= 0;
     const aNom = !r.propio ? `<div class="d">A nombre de ${esc(lindo(r.titular))}</div>` : "";
     return `<li class="click" data-m="${esc(r.movil)}"><div class="row">
       <div><div class="f">Móvil ${esc(r.movil)} <span class="d" style="display:inline">· ${esc(r.plan)}</span></div>${aNom}
-        <span class="estado ${ok?"ok":"warn"}" style="margin-top:6px;padding:3px 9px;font-size:12px">${ok?"✓ Al día":"● Saldo pendiente"}</span></div>
-      <div class="row"><span class="i">${pesos(r.saldo)}</span><span class="chev">›</span></div></div></li>`; }).join("");
+        ${r.sin_saldo ? "" : `<span class="estado ${ok?"ok":"warn"}" style="margin-top:6px;padding:3px 9px;font-size:12px">${ok?"✓ Al día":"● Saldo pendiente"}</span>`}</div>
+      <div class="row"><span class="i">${r.sin_saldo ? "" : pesos(r.saldo)}</span><span class="chev">›</span></div></div></li>`; }).join("");
   document.querySelectorAll("#lFlota li").forEach(li => li.addEventListener("click", () => mostrar(movilDe(li.dataset.m))));
   pintarNovedades();
   ["vLogin","vCuenta"].forEach(id => $(id).classList.add("hidden"));
@@ -455,8 +456,10 @@ function mostrar(r){
   const pagos = r.pagos || [];
   $("cUlt").textContent = pagos.length ? pagos[0].f : "—";
   const sinCargo = r.plan === "Sin cargo";
-  $("cEstado").innerHTML = sinCargo ? '<span class="estado ok">Sin cargo</span>' : alDia ? '<span class="estado ok">✓ Al día</span>' : '<span class="estado warn">● Saldo pendiente</span>';
-  $("cAviso").innerHTML = sinCargo ? '<div class="aviso ok">Este móvil no paga abono.</div>' : alDia
+  const ss = !!r.sin_saldo;
+  $("cSaldoBox").classList.toggle("hidden", ss);
+  $("cEstado").innerHTML = ss ? '' : sinCargo ? '<span class="estado ok">Sin cargo</span>' : alDia ? '<span class="estado ok">✓ Al día</span>' : '<span class="estado warn">● Saldo pendiente</span>';
+  $("cAviso").innerHTML = ss ? '' : sinCargo ? '<div class="aviso ok">Este móvil no paga abono.</div>' : alDia
     ? '<div class="aviso ok">¡Gracias por estar al día!' + (mon || r.plan === "Sin cargo" ? '' : ' Seguís recibiendo viajes de la central con normalidad.') + '</div>'
     : avisoDeuda(r);
 
@@ -466,7 +469,7 @@ function mostrar(r){
        <a class="lnk" style="font-size:13px;display:inline-block;margin-top:6px" href="${waPedir(p)}" target="_blank" rel="noopener">Pedir comprobante</a></div>
      <span class="i">${p.i ? pesos(p.i) : ""}</span></div></li>`).join("")
     : '<li class="muted">Todavía no hay pagos registrados en el sistema nuevo.</li>';
-  $("pPend").innerHTML = alDia
+  $("pPend").innerHTML = ss ? '' : alDia
     ? '<div class="aviso ok">No te quedó nada pendiente.</div>'
     : `<div class="aviso">Te quedó un saldo pendiente de <b>${pesos(r.saldo)}</b>.</div>`;
 
