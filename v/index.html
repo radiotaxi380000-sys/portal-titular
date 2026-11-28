@@ -51,7 +51,7 @@ textarea{min-height:80px;resize:vertical}
   <div class="marca"><img src="../icono-192.png" alt=""><div><b>Taxi 380mil</b><small>En Rosario desde 1980</small></div></div>
   <h1 id="saludo">¡Gracias por viajar con nosotros!</h1>
   <p>Estamos las 24 horas, los 365 días.</p>
-  <div class="movil hidden" id="chip">🚙 Móvil <span id="nm"></span><span id="nra"></span></div>
+  <div class="movil hidden" id="chip">🚕 Móvil <span id="nm"></span><span id="npat"></span><span id="nra"></span></div>
 </div>
 <main>
   <div class="card">
@@ -95,13 +95,14 @@ textarea{min-height:80px;resize:vertical}
 const SB = "https://muemdhlrsjlmxvfraljp.supabase.co/rest/v1/rpc/", KEY = "sb_publishable_WMpo3vPv2NDR5Ms_QEDHyQ_ATzkn46l";
 const $ = id => document.getElementById(id);
 const rpc = (fn, b) => fetch(SB + fn, {method:"POST", headers:{apikey:KEY, Authorization:"Bearer "+KEY, "Content-Type":"application/json"}, body:JSON.stringify(b)}).then(r => r.json());
+const fmtPat = p => { p = String(p||"").toUpperCase().replace(/[^A-Z0-9]/g,""); return /^[A-Z]{2}\d{3}[A-Z]{2}$/.test(p) ? p.slice(0,2)+" "+p.slice(2,5)+" "+p.slice(5) : /^[A-Z]{3}\d{3}$/.test(p) ? p.slice(0,3)+" "+p.slice(3) : p; };
 const q = new URLSearchParams(location.search);
 const M = (q.get("m") || "").replace(/\D/g, "").slice(0, 6);
 if(M){ $("waAdm").href = "https://wa.me/5493413138944?text=" + encodeURIComponent("Hola, les escribo desde el QR del móvil " + M);
   $("nm").textContent = M; $("chip").classList.remove("hidden"); $("olvide").href = "../perdi/?m=" + M; $("compartir").href = "../viaje/?m=" + M;
   $("waPedir").href = "https://wa.me/543414380000?text=" + encodeURIComponent("Hola, quiero pedir un taxi (vi el QR del móvil " + M + ")"); }
 try{ rpc("pasajero_visita", {p_movil: M}); }catch(e){}
-if(M) rpc("calco_ra", {p_movil: M}).then(d => { if(d && d.ra) $("nra").textContent = " · R.A. " + d.ra; }).catch(()=>{});
+if(M) rpc("calco_ra", {p_movil: M}).then(d => { if(d && d.patente) $("npat").textContent = " · " + fmtPat(d.patente); if(d && d.ra) $("nra").textContent = " · R.A. " + d.ra; }).catch(()=>{});
 const ua = navigator.userAgent;
 if(/iPhone|iPad|iPod/i.test(ua)) $("app").href = "https://apps.apple.com/ar/app/taxi-380mil/id6751862747";
 const h = new Date().getHours(); $("saludo").textContent = (h < 6 ? "¡Buenas noches!" : h < 13 ? "¡Buen día!" : h < 20 ? "¡Buenas tardes!" : "¡Buenas noches!") + " Gracias por viajar con nosotros";

@@ -39,6 +39,14 @@ input{width:100%;border:1.5px solid var(--borde);border-radius:12px;padding:12px
 .listo{text-align:center;padding:10px 0}.listo .g{font-size:54px}
 .pie{text-align:center;color:var(--suave);font-size:13px;line-height:1.6;margin-top:14px}
 a.ln{color:var(--azul);font-weight:600}
+.chk{border:2px solid #9cc3f5;background:#f5f9ff}
+.auto{display:flex;align-items:center;gap:12px;margin-top:10px}
+.auto .nm{background:var(--azul);color:#fff;border-radius:14px;padding:8px 12px;text-align:center;line-height:1;flex:none}
+.auto .nm small{display:block;font-size:11px;opacity:.85}.auto .nm b{font-size:26px}
+.pat{border:3px solid #14233d;border-radius:8px;background:#fff;padding:6px 10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:800;font-size:24px;letter-spacing:.06em;color:#14233d;text-align:center;flex:1}
+.pat small{display:block;font-family:system-ui,sans-serif;font-size:10px;letter-spacing:.1em;color:var(--suave);font-weight:700}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}.dos .btn{font-size:15px;padding:13px 8px}
+.pista{font-size:14px;color:var(--azul);margin-top:6px;min-height:18px}
 </style>
 </head>
 <body>
@@ -48,6 +56,13 @@ a.ln{color:var(--azul);font-weight:600}
   <p>Que alguien de confianza vea por dónde vas y sepa cuándo llegaste.</p>
 </div>
 <main>
+  <!-- 0. Verificar el auto (si viene del QR) -->
+  <div class="card chk hidden" id="vChk">
+    <h2>Primero, verificá el auto</h2>
+    <div class="sub">Fijate que la patente coincida con la del taxi en el que vas.</div>
+    <div class="auto"><div class="nm"><small>MÓVIL</small><b id="cMov"></b></div><div class="pat"><small>PATENTE</small><span id="cPat">—</span></div></div>
+    <div class="dos"><button class="btn pri" id="bSi">✓ Sí, es este</button><button class="btn sec" id="bNo">No, es otro</button></div>
+  </div>
   <!-- 1. Antes de empezar -->
   <div class="card" id="vIni">
     <h2>¿Cómo funciona?</h2>
@@ -59,6 +74,7 @@ a.ln{color:var(--azul);font-weight:600}
     </div>
     <label>Tu nombre<input id="iNom" maxlength="40" autocomplete="given-name" placeholder="Ej.: Laura"></label>
     <label>Número de móvil (opcional)<input id="iMov" maxlength="6" inputmode="numeric" placeholder="Ej.: 245"></label>
+    <div class="pista" id="pPat"></div>
     <label>¿A dónde vas? (opcional)<input id="iDes" maxlength="120" placeholder="Ej.: casa, Hospital Centenario…"></label>
     <button class="btn pri" id="bEmp">▶ Empezar a compartir</button>
     <div class="err" id="eIni"></div>
@@ -91,8 +107,23 @@ const SB = "https://muemdhlrsjlmxvfraljp.supabase.co/rest/v1/rpc/", KEY = "sb_pu
 const $ = id => document.getElementById(id);
 const rpc = (fn, b) => fetch(SB + fn, {method:"POST", headers:{apikey:KEY, Authorization:"Bearer "+KEY, "Content-Type":"application/json"}, body:JSON.stringify(b)}).then(r => r.json());
 const st = { get:k => { try{ return localStorage.getItem(k); }catch(e){ return null; } }, set:(k,v) => { try{ v==null ? localStorage.removeItem(k) : localStorage.setItem(k,v); }catch(e){} } };
+const fmtPat = p => { p = String(p||"").toUpperCase().replace(/[^A-Z0-9]/g,""); return /^[A-Z]{2}\d{3}[A-Z]{2}$/.test(p) ? p.slice(0,2)+" "+p.slice(2,5)+" "+p.slice(5) : /^[A-Z]{3}\d{3}$/.test(p) ? p.slice(0,3)+" "+p.slice(3) : p; };
 const q = new URLSearchParams(location.search);
 $("iMov").value = (q.get("m") || "").replace(/\D/g,"").slice(0,6);
+let porVerificar = false, tPat = null;
+function verPat(){
+  const m = $("iMov").value.replace(/\D/g,""); clearTimeout(tPat);
+  if(!m){ $("pPat").textContent = ""; return; }
+  tPat = setTimeout(() => rpc("calco_ra", {p_movil:m}).then(d => {
+    if($("iMov").value.replace(/\D/g,"") !== m) return;
+    $("pPat").textContent = d && d.patente ? "🚕 Móvil " + m + " · patente " + fmtPat(d.patente) + " · verificá que coincida" : "";
+    if(porVerificar){ $("cMov").textContent = m; $("cPat").textContent = d && d.patente ? fmtPat(d.patente) : "—"; }
+  }).catch(() => {}), 400);
+}
+$("iMov").addEventListener("input", verPat);
+if($("iMov").value){ porVerificar = true; $("vChk").classList.remove("hidden"); $("cMov").textContent = $("iMov").value; verPat(); }
+$("bSi").onclick = () => { porVerificar = false; $("vChk").classList.add("hidden"); $("eIni").textContent = ""; };
+$("bNo").onclick = () => { porVerificar = false; $("vChk").classList.add("hidden"); $("iMov").value = ""; $("pPat").textContent = "Escribí el número de móvil que figura en el auto en el que vas."; $("iMov").focus(); };
 $("iNom").value = st.get("vc_nom") || "";
 
 let viaje = null, watch = null, ultEnvio = 0, ultPos = 0, lock = null, tic = null;
@@ -100,7 +131,7 @@ try{ const g = JSON.parse(st.get("vc_viaje") || "null"); if(g && g.id && Date.no
 const link = () => location.origin + location.pathname.replace(/viaje\/?(index\.html)?$/, "") + "seguir/?v=" + viaje.id;
 const texto = () => `Estoy compartiendo mi viaje${viaje.destino ? " hacia " + viaje.destino : ""}. Podés ver por dónde voy acá: ${link()}`;
 
-function mostrar(v){ ["vIni","vAct","vFin"].forEach(x => $(x).classList.toggle("hidden", x !== v)); scrollTo(0,0); }
+function mostrar(v){ ["vIni","vAct","vFin"].forEach(x => $(x).classList.toggle("hidden", x !== v)); if(v !== "vIni") $("vChk").classList.add("hidden"); scrollTo(0,0); }
 async function despierto(){ try{ if("wakeLock" in navigator && !lock && document.visibilityState === "visible"){ lock = await navigator.wakeLock.request("screen"); lock.addEventListener("release", () => lock = null); } }catch(e){} }
 document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && viaje){ despierto(); pedirUna(); } });
 
@@ -136,6 +167,7 @@ function terminar(llego){
 
 $("bEmp").onclick = () => {
   const nom = $("iNom").value.trim();
+  if(porVerificar){ $("eIni").textContent = "Arriba de todo, confirmá si la patente coincide con el auto."; scrollTo({top:0, behavior:"smooth"}); return; }
   if(!nom){ $("eIni").textContent = "Poné tu nombre, así quien lo reciba sabe que sos vos."; $("iNom").focus(); return; }
   if(!navigator.geolocation){ $("eIni").textContent = "Este navegador no permite compartir la ubicación."; return; }
   st.set("vc_nom", nom); $("eIni").textContent = ""; $("bEmp").disabled = true; $("bEmp").textContent = "Pidiendo permiso de ubicación…";

@@ -30,6 +30,10 @@ header b{display:block;font-size:16px}header small{opacity:.88;font-size:13px}
 .hidden{display:none!important}
 .fin{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:30px;color:var(--suave);line-height:1.5}
 .fin b{display:block;color:var(--texto);font-size:19px;margin:8px 0 4px}
+.movp{display:flex;align-items:center;gap:10px;background:#f5f9ff;border:1.5px solid #9cc3f5;border-radius:14px;padding:8px 10px;margin-top:8px}
+.movp .nm{background:#0b3d91;color:#fff;border-radius:10px;padding:5px 9px;text-align:center;line-height:1}.movp .nm small{display:block;font-size:10px;opacity:.85}.movp .nm b{font-size:20px}
+.movp .pt{border:2.5px solid #14233d;border-radius:7px;background:#fff;padding:3px 8px;font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:800;font-size:19px;letter-spacing:.05em}
+.movp span.tx{font-size:12.5px;color:#5b6b85;line-height:1.3}
 .auto{width:22px;height:22px;border-radius:50%;background:#1f6fe0;border:4px solid #fff;box-shadow:0 0 0 2px rgba(31,111,224,.35),0 2px 6px rgba(0,0,0,.35)}
 </style>
 </head>
@@ -39,6 +43,7 @@ header b{display:block;font-size:16px}header small{opacity:.88;font-size:13px}
 <div class="panel" id="panel">
   <div class="llego hidden" id="llego"></div>
   <div class="est"><span class="punto" id="pto"></span><span id="est">Cargando…</span></div>
+  <div class="movp hidden" id="movp"><div class="nm"><small>MÓVIL</small><b id="pMov"></b></div><span class="pt hidden" id="pPat"></span><span class="tx">Auto que indicó al empezar el viaje</span></div>
   <div class="det" id="det"></div>
   <div class="acc"><a id="gm" href="#" target="_blank" rel="noopener">🗺️ Abrir en Google Maps</a><a href="tel:+543414380000">📞 Pedir un taxi</a></div>
   <div style="text-align:center;font-size:12px;color:#5b6b85;margin-top:8px">Servicio gratuito de <b>Taxi 380mil</b> · Rosario</div>
@@ -51,6 +56,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const rpc = (fn, b) => fetch(SB + fn, {method:"POST", headers:{apikey:KEY, Authorization:"Bearer "+KEY, "Content-Type":"application/json"}, body:JSON.stringify(b)}).then(r => r.json());
 const ID = (new URLSearchParams(location.search).get("v") || "").replace(/[^a-f0-9]/g,"").slice(0,40);
+const fmtPat = p => { p = String(p||"").toUpperCase().replace(/[^A-Z0-9]/g,""); return /^[A-Z]{2}\d{3}[A-Z]{2}$/.test(p) ? p.slice(0,2)+" "+p.slice(2,5)+" "+p.slice(5) : /^[A-Z]{3}\d{3}$/.test(p) ? p.slice(0,3)+" "+p.slice(3) : p; };
 const hora = t => new Date(t).toLocaleTimeString("es-AR", {hour:"2-digit", minute:"2-digit", hour12:false});
 let mapa = null, linea = null, marca = null, siguiendo = true, centrado = false, desfase = 0, ult = null, tmr = null;
 
@@ -73,7 +79,8 @@ function pintarEstado(){
   const s = Math.max(0, Math.round((Date.now() + desfase - new Date(d.actualizado)) / 1000));
   const viejo = s > 90; $("pto").classList.toggle("gris", viejo);
   $("est").textContent = !viejo ? "En viaje · ubicación en vivo" : "Última ubicación hace " + (s < 3600 ? Math.round(s/60) + " min" : "más de 1 h");
-  $("det").innerHTML = [d.movil ? "Móvil indicado por el pasajero: <b>" + esc(d.movil) + "</b> (no verificado)" : "", d.destino ? "Va hacia: <b>" + esc(d.destino) + "</b>" : "", "Salió " + hora(d.creado)].filter(Boolean).join(" · ")
+  if(d.movil){ $("pMov").textContent = d.movil; $("movp").classList.remove("hidden"); if(d.patente){ $("pPat").textContent = fmtPat(d.patente); $("pPat").classList.remove("hidden"); } }
+  $("det").innerHTML = [d.destino ? "Va hacia: <b>" + esc(d.destino) + "</b>" : "", "Salió " + hora(d.creado)].filter(Boolean).join(" · ")
     + (viejo ? "<br>Puede tener la pantalla bloqueada o estar sin señal. Se actualiza solo." : "");
 }
 async function cargar(){
