@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>App de viajes · Promoción y Prevención de la Salud · Radio Taxi 380mil</title>
+<meta name="theme-color" content="#0b3d91">
+<meta name="robots" content="noindex">
+<link rel="icon" href="../icono-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{--azul:#0b3d91;--azul2:#1256c4;--celeste:#e8f1fd;--gris:#5b6b82;--borde:#dbe6f5;--fondo:#f3f7fc;--ok:#1a8f5a;--rojo:#c0392b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Inter,system-ui,sans-serif;background:var(--fondo);color:#13233d;min-height:100vh}
+  .wrap{max-width:600px;margin:0 auto;padding:0 16px 48px}
+  .hero{margin:0 -16px;padding:28px 24px 84px;color:#fff;text-align:center;background:radial-gradient(120% 80% at 50% 0%,#2f7de0 0%,#1256c4 35%,#0b3d91 75%,#082c6b 100%);border-radius:0 0 34px 34px}
+  .hero img{width:78px;height:78px;border-radius:50%;background:#fff;box-shadow:0 0 0 6px rgba(255,255,255,.18)}
+  .hero h1{margin-top:12px;font-size:26px;font-weight:900;line-height:1.15}
+  .hero p{margin-top:8px;font-size:15px;opacity:.92;line-height:1.45}
+  .card{background:#fff;border:1px solid var(--borde);border-radius:18px;padding:20px;margin-top:14px}
+  .card.first{margin-top:-60px;box-shadow:0 18px 40px rgba(11,61,145,.14)}
+  .sec{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--azul2);margin-bottom:2px}
+  .q{padding:16px 0;border-bottom:1px solid var(--borde)}
+  .q:last-child{border-bottom:none;padding-bottom:0}
+  .q:first-of-type{padding-top:6px}
+  .q h2{font-size:16px;font-weight:700;line-height:1.35}
+  .q .ay{font-weight:500;color:var(--gris);font-size:13px;margin-top:3px;line-height:1.4}
+  .estrellas{display:flex;gap:6px;margin-top:12px}
+  .estrellas button{flex:1;height:50px;border-radius:12px;border:1.5px solid var(--borde);background:#fbfdff;font-size:24px;cursor:pointer;color:#c7d2e3}
+  .estrellas button.on{color:#1f6fe0;border-color:#9cc3f5;background:var(--celeste)}
+  .nota{font-size:13px;color:var(--gris);margin-top:6px;min-height:18px}
+  .opciones{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .opciones label{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px solid var(--borde);border-radius:12px;cursor:pointer;font-weight:500;background:#fbfdff;font-size:15px;line-height:1.3}
+  .opciones input{width:20px;height:20px;accent-color:var(--azul);flex-shrink:0}
+  .opciones label:has(input:checked){border-color:var(--azul2);background:var(--celeste)}
+  .fila{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .fila label{flex:1 1 30%;justify-content:center;text-align:center;padding:12px 8px;border:1.5px solid var(--borde);border-radius:12px;cursor:pointer;font-weight:600;background:#fbfdff;font-size:14px;display:flex;align-items:center;gap:6px}
+  .fila input{accent-color:var(--azul)}
+  .fila label:has(input:checked){border-color:var(--azul2);background:var(--celeste)}
+  .func{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .func .it{border:1.5px solid var(--borde);border-radius:12px;padding:10px 12px;background:#fbfdff}
+  .func .it b{display:block;font-size:14px;font-weight:600;line-height:1.3}
+  .func .it .bt{display:flex;gap:6px;margin-top:8px}
+  .func .it .bt button{flex:1;min-height:38px;border-radius:10px;border:1.5px solid var(--borde);background:#fff;font:inherit;font-size:13px;font-weight:600;color:var(--gris);cursor:pointer}
+  .func .it .bt button.s{background:var(--azul);border-color:var(--azul);color:#fff}
+  .func .it .bt button.n{background:#fdecea;border-color:#f0b4ad;color:var(--rojo)}
+  .func .it .bt button.d{background:#eef2f7;border-color:#c7d2e3;color:#13233d}
+  textarea,input[type=text],input[type=tel]{width:100%;margin-top:10px;border:1.5px solid var(--borde);border-radius:12px;padding:12px 14px;font:inherit;font-size:15px;background:#fbfdff;color:#13233d}
+  textarea{min-height:96px;resize:vertical}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:54px;border:0;border-radius:14px;background:var(--azul);color:#fff;font:inherit;font-size:16px;font-weight:800;cursor:pointer;margin-top:16px;text-decoration:none}
+  .btn.sec2{background:#fff;color:var(--azul);border:1.5px solid var(--borde)}
+  .btn:disabled{opacity:.6}
+  .err{color:var(--rojo);font-size:14px;margin-top:10px;text-align:center;min-height:18px}
+  .gracias{text-align:center;padding:10px 0}
+  .gracias .ok{width:64px;height:64px;border-radius:50%;background:#e6f6ee;color:var(--ok);font-size:34px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+  .gracias h2{font-size:22px;font-weight:800}
+  .gracias p{color:var(--gris);margin-top:8px;line-height:1.45}
+  footer{text-align:center;color:var(--gris);font-size:12px;margin-top:22px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <img src="../icono-192.png" alt="Radio Taxi 380mil">
+    <h1>App de viajes para Promoción y Prevención de la Salud</h1>
+    <p>Ya vieron la app de muestra. Ahora queremos saber qué les sirve, qué sacarían y qué agregarían, para armarla a la medida de ustedes.</p>
+  </div>
+
+  <div id="form">
+    <div class="card first">
+      <div class="sec">Quién responde</div>
+      <div class="q">
+        <h2>Nombre y programa o área</h2>
+        <input type="text" id="nom" placeholder="Ej.: Hernán · Promoción y Prevención" autocomplete="name">
+        <input type="text" id="contacto" placeholder="Teléfono o mail (opcional)">
+      </div>
+      <div class="q">
+        <h2>¿Qué les pareció la app de muestra?</h2>
+        <div class="estrellas" id="est"></div>
+        <div class="nota" id="estNota"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec">Cómo la usarían</div>
+      <div class="q">
+        <h2>¿Para qué pedirían los taxis?</h2>
+        <div class="ay">Marquen todo lo que corresponda.</div>
+        <div class="opciones" id="usos"></div>
+        <input type="text" id="usosOtro" placeholder="Otro uso (opcional)">
+      </div>
+      <div class="q">
+        <h2>¿Cuántas personas pedirían viajes desde la app?</h2>
+        <div class="fila" data-name="personas"></div>
+      </div>
+      <div class="q">
+        <h2>Más o menos, ¿cuántos viajes por mes?</h2>
+        <div class="fila" data-name="viajes"></div>
+      </div>
+      <div class="q">
+        <h2>¿Con cuánta anticipación suelen saber los viajes?</h2>
+        <div class="fila" data-name="anticipacion"></div>
+      </div>
+      <div class="q">
+        <h2>¿Hacen viajes fuera de Rosario?</h2>
+        <div class="ay">Por ejemplo a Funes, V. G. Gálvez, Pérez u otras localidades.</div>
+        <div class="fila" data-name="fuera"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec">Funciones de la app</div>
+      <div class="q">
+        <h2>¿Qué dejamos y qué sacamos?</h2>
+        <div class="ay">Para cada cosa que vieron en la muestra, marquen si les sirve.</div>
+        <div class="func" id="func"></div>
+      </div>
+      <div class="q">
+        <h2>¿Quién aprobaría los pedidos antes de mandar el taxi?</h2>
+        <div class="fila" data-name="aprueba"></div>
+      </div>
+      <div class="q">
+        <h2>¿Qué sacarían o cambiarían?</h2>
+        <textarea id="sacar" placeholder="Escriban lo que no les sirve o harían distinto"></textarea>
+      </div>
+      <div class="q">
+        <h2>¿Qué agregarían?</h2>
+        <div class="ay">Cualquier cosa que necesiten para sus actividades, aunque no la hayan visto en la muestra.</div>
+        <textarea id="agregar" placeholder="Ej.: algo que hoy hacen a mano o les complica"></textarea>
+      </div>
+      <button class="btn" id="enviar" type="button">Enviar respuestas</button>
+      <div class="err" id="err"></div>
+    </div>
+  </div>
+
+  <div class="card first" id="listo" style="display:none">
+    <div class="gracias">
+      <div class="ok">✓</div>
+      <h2>¡Gracias!</h2>
+      <p>Recibimos sus respuestas. Con esto ajustamos la app y se la volvemos a mostrar.</p>
+      <a class="btn" id="wa" target="_blank" rel="noopener">Mandar también por WhatsApp</a>
+      <button class="btn sec2" id="copiar" type="button">Copiar respuestas</button>
+    </div>
+  </div>
+
+  <footer>Radio Taxi 380mil · Rosario · Desde 1980</footer>
+</div>
+
+<script>
+const SB_URL = "https://muemdhlrsjlmxvfraljp.supabase.co";
+const SB_KEY = "sb_publishable_WMpo3vPv2NDR5Ms_QEDHyQ_ATzkn46l";
+const WA = "5493416536382";
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+const USOS = ["Jornadas de vacunación","Charlas o talleres en escuelas, clubes o barrios","Controles de salud en plazas o ferias","Campañas puerta a puerta","Llevar materiales (folletería, gazebo, conservadoras)","Personal a reuniones o capacitaciones"];
+const FILAS = {
+  personas:["1 a 3","4 a 10","Más de 10"],
+  viajes:["Menos de 20","20 a 60","Más de 60"],
+  anticipacion:["El mismo día","El día antes","Una semana o más"],
+  fuera:["Sí, seguido","A veces","No"],
+  aprueba:["Una sola persona","Un responsable por programa","No hace falta aprobar"]
+};
+const FUNC = ["Pedir el taxi desde el celular","Ver el taxi en el mapa y cuánto falta","Compartir el seguimiento con otra persona","Programar de una vez todos los viajes de una campaña","Que un responsable apruebe cada pedido","Cargar cada viaje a un programa o actividad","Tope de gasto mensual por programa","Resumen del mes para la factura y el informe"];
+const TXT = {1:"No nos sirve",2:"Le falta bastante",3:"Más o menos",4:"Nos gusta",5:"¡Nos encanta!"};
+
+let estrellas = 0; const func = {};
+const est = $("est");
+for (let i = 1; i <= 5; i++) { const b = document.createElement("button"); b.type = "button"; b.textContent = "★"; b.setAttribute("aria-label", i + " de 5"); b.onclick = () => { estrellas = i; [...est.children].forEach((x, j) => x.classList.toggle("on", j < i)); $("estNota").textContent = TXT[i]; }; est.appendChild(b); }
+$("usos").innerHTML = USOS.map((u, i) => `<label><input type="checkbox" value="${esc(u)}">${esc(u)}</label>`).join("");
+document.querySelectorAll(".fila").forEach(f => { const n = f.dataset.name; f.innerHTML = FILAS[n].map(o => `<label><input type="radio" name="${n}" value="${esc(o)}">${esc(o)}</label>`).join(""); });
+$("func").innerHTML = FUNC.map((f, i) => `<div class="it"><b>${esc(f)}</b><div class="bt" data-i="${i}"><button type="button" data-v="Sirve">Sirve</button><button type="button" data-v="Da igual">Da igual</button><button type="button" data-v="Sacar">Sacar</button></div></div>`).join("");
+$("func").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; const box = b.parentElement; const f = FUNC[box.dataset.i]; func[f] = b.dataset.v; [...box.children].forEach(x => x.className = x === b ? ({"Sirve":"s","Da igual":"d","Sacar":"n"})[b.dataset.v] : ""); });
+
+const radio = n => (document.querySelector(`input[name=${n}]:checked`) || {}).value || "";
+function datos() {
+  const usos = [...document.querySelectorAll("#usos input:checked")].map(x => x.value);
+  if ($("usosOtro").value.trim()) usos.push("Otro: " + $("usosOtro").value.trim());
+  return { nombre: $("nom").value.trim(), contacto: $("contacto").value.trim(), estrellas, usos,
+    personas: radio("personas"), viajes_mes: radio("viajes"), anticipacion: radio("anticipacion"), fuera_rosario: radio("fuera"), aprueba: radio("aprueba"),
+    funciones: func, sacar: $("sacar").value.trim(), agregar: $("agregar").value.trim() };
+}
+function resumen(d) {
+  const L = ["*App de viajes · Promoción y Prevención de la Salud*", "Responde: " + (d.nombre || "—") + (d.contacto ? " (" + d.contacto + ")" : "")];
+  if (d.estrellas) L.push("Opinión: " + "★".repeat(d.estrellas) + " " + TXT[d.estrellas]);
+  if (d.usos.length) L.push("Usos: " + d.usos.join(", "));
+  [["Personas que piden", d.personas], ["Viajes por mes", d.viajes_mes], ["Anticipación", d.anticipacion], ["Fuera de Rosario", d.fuera_rosario], ["Aprueba", d.aprueba]].forEach(([k, v]) => v && L.push(k + ": " + v));
+  const F = Object.entries(d.funciones); if (F.length) { L.push("Funciones:"); F.forEach(([k, v]) => L.push("• " + k + ": " + v)); }
+  if (d.sacar) L.push("Sacarían/cambiarían: " + d.sacar);
+  if (d.agregar) L.push("Agregarían: " + d.agregar);
+  return L.join("\n");
+}
+$("enviar").onclick = async () => {
+  const d = datos();
+  if (!d.nombre) { $("err").textContent = "Pongan su nombre arriba de todo, así sabemos quién respondió."; $("nom").focus(); return; }
+  $("err").textContent = ""; $("enviar").disabled = true; $("enviar").textContent = "Enviando…";
+  let ok = false;
+  try { const r = await fetch(SB_URL + "/rest/v1/rpc/propre_responder", { method: "POST", headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json" }, body: JSON.stringify({ p_datos: d }) }); ok = r.ok && (await r.json()) === true; } catch (e) {}
+  const txt = resumen(d);
+  $("wa").href = "https://wa.me/" + WA + "?text=" + encodeURIComponent(txt);
+  $("copiar").onclick = async () => { try { await navigator.clipboard.writeText(txt); $("copiar").textContent = "¡Copiado!"; } catch (e) { $("copiar").textContent = "No se pudo copiar"; } };
+  if (!ok) document.querySelector("#listo p").textContent = "No pudimos guardar las respuestas por internet. Mándenlas por WhatsApp con el botón de abajo, así no se pierden.";
+  $("form").style.display = "none"; $("listo").style.display = "block"; window.scrollTo(0, 0);
+};
+</script>
+</body>
+</html>
