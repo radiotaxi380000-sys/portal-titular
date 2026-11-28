@@ -63,7 +63,7 @@
   <div class="hero">
     <img src="../icono-192.png" alt="Radio Taxi 380mil">
     <h1>App de viajes para Promoción y Prevención de la Salud</h1>
-    <p>Ya vieron la app de muestra. Ahora queremos saber qué les sirve, qué sacarían y qué agregarían, para armarla a la medida de ustedes.</p>
+    <p>¡Gracias por responder la encuesta del servicio! Como nos dijeron que la app <b>tal vez</b> les interesaba, armamos una muestra pensada para ustedes. Cuéntennos qué les sirve, qué sacarían y qué agregarían.</p>
   </div>
 
   <div id="form">
@@ -71,13 +71,12 @@
       <div class="sec">Quién responde</div>
       <div class="q">
         <h2>Nombre y programa o área</h2>
-        <input type="text" id="nom" placeholder="Ej.: Hernán · Promoción y Prevención" autocomplete="name">
-        <input type="text" id="contacto" placeholder="Teléfono o mail (opcional)">
+        <input type="text" id="nom" value="Hernán Manzotti" placeholder="Nombre" autocomplete="name">
+        <input type="text" id="contacto" value="(341) 658-0432" placeholder="Teléfono o mail (opcional)">
       </div>
       <div class="q">
-        <h2>¿Qué les pareció la app de muestra?</h2>
-        <div class="estrellas" id="est"></div>
-        <div class="nota" id="estNota"></div>
+        <h2>Después de ver la muestra, ¿la usarían?</h2>
+        <div class="fila" data-name="usarian"></div>
       </div>
     </div>
 
@@ -124,7 +123,7 @@
         <textarea id="sacar" placeholder="Escriban lo que no les sirve o harían distinto"></textarea>
       </div>
       <div class="q">
-        <h2>¿Qué agregarían?</h2>
+        <h2>¿Qué agregarían? ¿Qué les haría falta para decir que sí?</h2>
         <div class="ay">Cualquier cosa que necesiten para sus actividades, aunque no la hayan visto en la muestra.</div>
         <textarea id="agregar" placeholder="Ej.: algo que hoy hacen a mano o les complica"></textarea>
       </div>
@@ -159,14 +158,15 @@ const FILAS = {
   viajes:["Menos de 20","20 a 60","Más de 60"],
   anticipacion:["El mismo día","El día antes","Una semana o más"],
   fuera:["Sí, seguido","A veces","No"],
-  aprueba:["Una sola persona","Un responsable por programa","No hace falta aprobar"]
+  aprueba:["Una sola persona","Un responsable por programa","No hace falta aprobar"],
+  usarian:["Sí","Tal vez","No"]
 };
 const FUNC = ["Pedir el taxi desde el celular","Ver el taxi en el mapa y cuánto falta","Compartir el seguimiento con otra persona","Programar de una vez todos los viajes de una campaña","Que un responsable apruebe cada pedido","Cargar cada viaje a un programa o actividad","Tope de gasto mensual por programa","Resumen del mes para la factura y el informe"];
 const TXT = {1:"No nos sirve",2:"Le falta bastante",3:"Más o menos",4:"Nos gusta",5:"¡Nos encanta!"};
 
 let estrellas = 0; const func = {};
 const est = $("est");
-for (let i = 1; i <= 5; i++) { const b = document.createElement("button"); b.type = "button"; b.textContent = "★"; b.setAttribute("aria-label", i + " de 5"); b.onclick = () => { estrellas = i; [...est.children].forEach((x, j) => x.classList.toggle("on", j < i)); $("estNota").textContent = TXT[i]; }; est.appendChild(b); }
+if (est) for (let i = 1; i <= 5; i++) { const b = document.createElement("button"); b.type = "button"; b.textContent = "★"; b.setAttribute("aria-label", i + " de 5"); b.onclick = () => { estrellas = i; [...est.children].forEach((x, j) => x.classList.toggle("on", j < i)); $("estNota").textContent = TXT[i]; }; est.appendChild(b); }
 $("usos").innerHTML = USOS.map((u, i) => `<label><input type="checkbox" value="${esc(u)}">${esc(u)}</label>`).join("");
 document.querySelectorAll(".fila").forEach(f => { const n = f.dataset.name; f.innerHTML = FILAS[n].map(o => `<label><input type="radio" name="${n}" value="${esc(o)}">${esc(o)}</label>`).join(""); });
 $("func").innerHTML = FUNC.map((f, i) => `<div class="it"><b>${esc(f)}</b><div class="bt" data-i="${i}"><button type="button" data-v="Sirve">Sirve</button><button type="button" data-v="Da igual">Da igual</button><button type="button" data-v="Sacar">Sacar</button></div></div>`).join("");
@@ -176,13 +176,13 @@ const radio = n => (document.querySelector(`input[name=${n}]:checked`) || {}).va
 function datos() {
   const usos = [...document.querySelectorAll("#usos input:checked")].map(x => x.value);
   if ($("usosOtro").value.trim()) usos.push("Otro: " + $("usosOtro").value.trim());
-  return { nombre: $("nom").value.trim(), contacto: $("contacto").value.trim(), estrellas, usos,
+  return { nombre: $("nom").value.trim(), contacto: $("contacto").value.trim(), usarian: radio("usarian"), usos,
     personas: radio("personas"), viajes_mes: radio("viajes"), anticipacion: radio("anticipacion"), fuera_rosario: radio("fuera"), aprueba: radio("aprueba"),
     funciones: func, sacar: $("sacar").value.trim(), agregar: $("agregar").value.trim() };
 }
 function resumen(d) {
   const L = ["*App de viajes · Promoción y Prevención de la Salud*", "Responde: " + (d.nombre || "—") + (d.contacto ? " (" + d.contacto + ")" : "")];
-  if (d.estrellas) L.push("Opinión: " + "★".repeat(d.estrellas) + " " + TXT[d.estrellas]);
+  if (d.usarian) L.push("¿La usarían?: " + d.usarian);
   if (d.usos.length) L.push("Usos: " + d.usos.join(", "));
   [["Personas que piden", d.personas], ["Viajes por mes", d.viajes_mes], ["Anticipación", d.anticipacion], ["Fuera de Rosario", d.fuera_rosario], ["Aprueba", d.aprueba]].forEach(([k, v]) => v && L.push(k + ": " + v));
   const F = Object.entries(d.funciones); if (F.length) { L.push("Funciones:"); F.forEach(([k, v]) => L.push("• " + k + ": " + v)); }
