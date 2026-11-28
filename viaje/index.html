@@ -34,6 +34,7 @@ input{width:100%;border:1.5px solid var(--borde);border-radius:12px;padding:12px
 @keyframes lat{0%{box-shadow:0 0 0 0 rgba(30,132,73,.6)}100%{box-shadow:0 0 0 12px rgba(30,132,73,0)}}
 .aviso{background:#fdecea;border:1px solid #f5c2bd;color:#8e2a20;border-radius:12px;padding:12px;font-size:14px;line-height:1.45;margin-top:10px}
 .info{background:var(--celeste);border-radius:12px;padding:12px;font-size:14px;line-height:1.45;margin-top:10px;color:var(--azul)}
+.preg{background:#fff4e5;border:2px solid #f0b46a;border-radius:14px;padding:14px;margin-top:10px;display:flex;flex-direction:column;gap:4px;font-size:15px;line-height:1.4}.preg b{font-size:19px}
 .err{color:var(--rojo);font-size:14px;margin-top:8px;min-height:18px}
 .hidden{display:none!important}
 .listo{text-align:center;padding:10px 0}.listo .g{font-size:54px}
@@ -78,7 +79,7 @@ a.ln{color:var(--azul);font-weight:600}
     <label>¿A dónde vas? (opcional)<input id="iDes" maxlength="120" placeholder="Ej.: casa, Hospital Centenario…"></label>
     <button class="btn pri" id="bEmp">▶ Empezar a compartir</button>
     <div class="err" id="eIni"></div>
-    <p class="sub" style="margin-top:6px">Usa el GPS de tu celular, solo mientras dura el viaje. El link deja de funcionar solo.</p>
+    <p class="sub" style="margin-top:6px">Usa el GPS de tu celular, solo mientras dura el viaje. Se comparte hasta 50 minutos: antes de cortar te preguntamos si ya llegaste.</p>
   </div>
 
   <!-- 2. Compartiendo -->
@@ -88,6 +89,11 @@ a.ln{color:var(--azul);font-weight:600}
     <button class="btn sec hidden" id="bShare">📤 Compartir por otra app</button>
     <div class="info">📱 <b>Dejá esta pantalla abierta</b> hasta llegar. Si bloqueás el celular o cambiás de app, la ubicación se pausa y vuelve cuando regresás.</div>
     <div class="aviso hidden" id="eGps"></div>
+    <div class="preg hidden" id="vPreg">
+      <b>¿Ya llegaste?</b>
+      <span id="tPreg">Si no respondés, se deja de compartir solo.</span>
+      <button class="btn pri" id="bSigo">🚕 Sigo viajando (20 min más)</button>
+    </div>
     <button class="btn pri" id="bLle" style="background:#1e8449">✅ Llegué bien</button>
     <button class="btn sec" id="bCan" style="background:#f3f5f9;color:#5b6b85;font-size:15px;padding:12px">Dejar de compartir</button>
   </div>
@@ -126,8 +132,9 @@ $("bSi").onclick = () => { porVerificar = false; $("vChk").classList.add("hidden
 $("bNo").onclick = () => { porVerificar = false; $("vChk").classList.add("hidden"); $("iMov").value = ""; $("pPat").textContent = "Escribí el número de móvil que figura en el auto en el que vas."; $("iMov").focus(); };
 $("iNom").value = st.get("vc_nom") || "";
 
-let viaje = null, watch = null, ultEnvio = 0, ultPos = 0, lock = null, tic = null;
-try{ const g = JSON.parse(st.get("vc_viaje") || "null"); if(g && g.id && Date.now() - g.t < 6*36e5) viaje = g; }catch(e){}
+let viaje = null, watch = null, ultEnvio = 0, ultPos = 0, lock = null, tic = null, avisado = false;
+const MIN = 60000;
+try{ const g = JSON.parse(st.get("vc_viaje") || "null"); if(g && g.id && Date.now() < (g.vence || g.t + 50*MIN)) viaje = g; }catch(e){}
 const link = () => location.origin + location.pathname.replace(/viaje\/?(index\.html)?$/, "") + "seguir/?v=" + viaje.id;
 const texto = () => `Estoy compartiendo mi viaje${viaje.destino ? " hacia " + viaje.destino : ""}. Podés ver por dónde voy acá: ${link()}`;
 
@@ -139,7 +146,7 @@ function enviar(p){
   ultPos = Date.now(); $("eGps").classList.add("hidden");
   if(Date.now() - ultEnvio < 8000) return; ultEnvio = Date.now();
   rpc("viaje_pos", {p_id:viaje.id, p_clave:viaje.clave, p_lat:p.coords.latitude, p_lng:p.coords.longitude, p_acc:Math.round(p.coords.accuracy||0)})
-    .then(d => { if(d && d.error === "fin"){ terminar(true); } }).catch(() => {});
+    .then(d => { if(d && d.error === "fin"){ cortado(); } }).catch(() => {});
 }
 function errGps(e){
   const m = e && e.code === 1 ? "No diste permiso de ubicación. Tocá el candado o el ícono de ubicación arriba, en la barra del navegador, y elegí <b>Permitir</b>. Después recargá la página."
@@ -156,8 +163,15 @@ function arrancar(){
     const s = Math.round((Date.now() - ultPos)/1000);
     $("sVivo").textContent = !ultPos ? "Buscando tu ubicación…" : s < 20 ? "Compartiendo tu ubicación en vivo" : "Última ubicación hace " + (s < 120 ? s + " s" : Math.round(s/60) + " min");
     if(Date.now() - ultEnvio > 30000) pedirUna();
+    const falta = (viaje.vence || viaje.t + 50*MIN) - Date.now();
+    if(falta <= 0){ cortado(); return; }
+    if(falta <= 10*MIN){
+      $("tPreg").textContent = "Si no respondés, se deja de compartir en " + Math.max(1, Math.ceil(falta/MIN)) + " min.";
+      if(!avisado){ avisado = true; $("vPreg").classList.remove("hidden"); try{ navigator.vibrate && navigator.vibrate([400,200,400,200,400]); }catch(e){} }
+    }
   }, 3000);
 }
+function cortado(){ terminar(false); $("eIni").textContent = "El seguimiento se cortó solo porque no respondiste. Si seguís viajando, empezá de nuevo."; }
 function terminar(llego){
   if(watch != null) navigator.geolocation.clearWatch(watch); watch = null; clearInterval(tic);
   try{ lock && lock.release(); }catch(e){}
@@ -175,13 +189,24 @@ $("bEmp").onclick = () => {
     try{
       const d = await rpc("viaje_crear", {p_movil:$("iMov").value, p_nombre:nom, p_destino:$("iDes").value.trim()});
       if(!d || !d.id) throw 0;
-      viaje = {id:d.id, clave:d.clave, movil:$("iMov").value.replace(/\D/g,""), destino:$("iDes").value.trim(), nombre:nom, t:Date.now()};
+      const venc = d.vence && d.ahora ? Date.now() + (new Date(d.vence) - new Date(d.ahora)) : Date.now() + 50*MIN;
+      avisado = false; $("vPreg").classList.add("hidden");
+      viaje = {vence:venc, id:d.id, clave:d.clave, movil:$("iMov").value.replace(/\D/g,""), destino:$("iDes").value.trim(), nombre:nom, t:Date.now()};
       st.set("vc_viaje", JSON.stringify(viaje)); ultEnvio = 0; enviar(p); arrancar();
     }catch(e){ $("eIni").textContent = "No hay conexión. Probá de nuevo."; }
     $("bEmp").disabled = false; $("bEmp").textContent = "▶ Empezar a compartir";
   }, e => { $("bEmp").disabled = false; $("bEmp").textContent = "▶ Empezar a compartir";
     $("eIni").innerHTML = e.code === 1 ? "Para compartir el viaje tenés que <b>permitir la ubicación</b>. Tocá el candado arriba, en la barra del navegador, elegí Permitir y probá de nuevo." : "No se pudo leer el GPS. Revisá que la ubicación del celular esté activada y probá de nuevo."; },
   {enableHighAccuracy:true, timeout:20000});
+};
+$("bSigo").onclick = async () => {
+  $("bSigo").disabled = true;
+  try{ const d = await rpc("viaje_seguir", {p_id:viaje.id, p_clave:viaje.clave});
+    if(d && d.ok){ viaje.vence = Date.now() + (new Date(d.vence) - new Date(d.ahora)); st.set("vc_viaje", JSON.stringify(viaje)); avisado = false; $("vPreg").classList.add("hidden"); }
+    else if(d && d.error === "maximo") $("tPreg").textContent = "Ya pasaron 3 horas, no se puede extender más. Tocá Llegué bien cuando llegues.";
+    else if(d && d.error === "fin") cortado();
+  }catch(e){ $("tPreg").textContent = "Sin conexión, probá de nuevo."; }
+  $("bSigo").disabled = false;
 };
 $("bWa").onclick = () => { window.open("https://wa.me/?text=" + encodeURIComponent(texto()), "_blank"); };
 $("bShare").onclick = () => { navigator.share({title:"Mi viaje", text:texto()}).catch(() => {}); };
